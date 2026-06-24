@@ -12,44 +12,50 @@ Below is the end-to-end request-response lifecycle of the application:
                +-------------------------------------------------------+
                |                      Client / UI                      |
                +---------------------------+---------------------------+
-                                           | HTTP Request (e.g., GET /api/tasks)
+                                           | HTTP Request (e.g., GET /api/tasks?page=1&limit=10)
                                            v
                +-------------------------------------------------------+
                |             Express Router (app.js / *Routes.js)      |
                +---------------------------+---------------------------+
-                                           | Routes request to correct endpoints
+                                           | Routes to: /api/auth/* OR /api/tasks/*
                                            v
                +-------------------------------------------------------+
-               |        Authentication Middleware (authMiddleware.js)  |
+               |   [FEATURE] JWT Auth Middleware (authMiddleware.js)   |
                +---------------------------+---------------------------+
-                                           | Decodes JWT & populates req.user.id (401 if invalid)
+                                           | Decodes JWT & verifies user identity (401 if invalid)
                                            v
                +-------------------------------------------------------+
-               |      Validation Middleware (validate* / validateAuth)  |
+               |    [FEATURE] Validation Middleware (validateTask.js)  |
                +---------------------------+---------------------------+
-                                           | Rejects invalid request bodies immediately (400)
+                                           | Guards constraints (e.g. description length >= 20)
                                            v
                +-------------------------------------------------------+
-               |               Controller Layer (*Controller.js)       |
+               |          Controller Layer (taskController.js)         |
                +---------------------------+---------------------------+
-                                           | Extracts query/params/body and propagates req.user.id
+                                           | Parses filters, page/limit, & passes req.user.id
                                            v
                +-------------------------------------------------------+
-               |                Service Layer (*Service.js)            |
+               |          [FEATURE] Service Layer (taskService.js)     |
+               |  - Multi-tenant Scoping (where: { userId })           |
+               |  - Offset Pagination (limit & offset)                 |
+               |  - Sorting (created_at DESC)                          |
+               |  - Substring Search & Status Filter                   |
+               |  - Dashboard Stats (total, pending, completed)        |
                +---------------------------+---------------------------+
-                                           | Performs tenant-isolated business rules and pagination
+                                           | Queries via Sequelize ORM
                                            v
                +-----------------------------+-----------------------------+
-               |    Sequelize ORM Model      |    Sequelize ORM Model      |
+               |      User ORM Model         |       Task ORM Model        |
                |         (User.js)           |         (Task.js)           |
                +--------------+--------------+--------------+--------------+
                               |                             |
                               +--------------+--------------+
-                                             | Reads/Writes SQL
+                                             | Executes SQL
                                              v
                +-------------------------------------------------------+
-               |                  Database Layer                       |
-               |     (MySQL: Dev/Prod)   |   (SQLite In-Memory: Tests) |
+               |                   Database Layer                      |
+               |   [MySQL] (Dev/Prod Database)                         |
+               |   [SQLite] (In-Memory Database for [FEATURE] Tests)   |
                +-------------------------------------------------------+
                                              | Persists information
                                              v
