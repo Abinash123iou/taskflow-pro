@@ -17,8 +17,8 @@ async function startServer() {
       throw new Error('Database connection authentication failed.');
     }
 
-    // 2. Sync Models (Ensures Sequelize has registered all defined schemas)
-    await sequelize.sync();
+    // 2. Sync Models (Ensures Sequelize has registered all defined schemas, altering tables to match updates)
+    await sequelize.sync({ alter: true });
     console.log('Database models synchronized successfully.');
 
     // 3. Start Listening for HTTP Requests
