@@ -5,5 +5,9 @@
   "scripts": {
     "dev": "npm run dev --prefix backend",
     "start": "npm start --prefix backend"
+  },
+  "dependencies": {
+    "swagger-jsdoc": "^6.3.0",
+    "swagger-ui-express": "^5.0.1"
   }
 }

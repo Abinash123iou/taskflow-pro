@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const taskRoutes = require('./routes/taskRoutes');
 const errorHandler = require('./middleware/errorHandler');
+const { setupSwagger } = require('./docs/swagger');
 
 const app = express();
 
@@ -9,6 +10,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Register Swagger Documentation Route
+setupSwagger(app);
 
 // Register API Routes
 app.use('/api', taskRoutes);
