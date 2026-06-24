@@ -13,6 +13,10 @@ const {
   validateTaskCreation,
   validateTaskStatusUpdate
 } = require('../middleware/validateTask');
+const authMiddleware = require('../middleware/authMiddleware');
+
+// Protect all task endpoints with JWT verification
+router.use(authMiddleware);
 
 // Dashboard statistics (Placed first to avoid any potential route matching conflicts)
 router.get('/tasks/stats', getStatsController);

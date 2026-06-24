@@ -7,7 +7,7 @@ const taskService = require('../services/taskService');
 async function createTaskController(req, res) {
   try {
     const { title, description, status } = req.body;
-    const task = await taskService.createTask({ title, description, status });
+    const task = await taskService.createTask({ title, description, status }, req.user.id);
 
     return res.status(201).json({
       success: true,
@@ -24,18 +24,18 @@ async function createTaskController(req, res) {
 }
 
 /**
- * Controller to fetch all tasks with optional search and status filter.
+ * Controller to fetch all tasks with optional search, status filter, and pagination.
  * GET /tasks
  */
 async function getTasksController(req, res) {
   try {
-    const { status, search } = req.query;
-    const tasks = await taskService.getAllTasks({ status, search });
+    const { status, search, page, limit } = req.query;
+    const tasksData = await taskService.getAllTasks({ status, search, page, limit }, req.user.id);
 
     return res.status(200).json({
       success: true,
       message: 'Tasks retrieved successfully',
-      data: tasks
+      data: tasksData
     });
   } catch (error) {
     return res.status(error.status || 500).json({
@@ -54,7 +54,7 @@ async function updateTaskController(req, res) {
     const { id } = req.params;
     const { status } = req.body;
 
-    const updatedTask = await taskService.updateTaskStatus(id, status);
+    const updatedTask = await taskService.updateTaskStatus(id, status, req.user.id);
 
     return res.status(200).json({
       success: true,
@@ -77,7 +77,7 @@ async function updateTaskController(req, res) {
 async function deleteTaskController(req, res) {
   try {
     const { id } = req.params;
-    const result = await taskService.deleteTask(id);
+    const result = await taskService.deleteTask(id, req.user.id);
 
     return res.status(200).json({
       success: true,
@@ -98,7 +98,7 @@ async function deleteTaskController(req, res) {
  */
 async function getStatsController(req, res) {
   try {
-    const stats = await taskService.getDashboardStats();
+    const stats = await taskService.getDashboardStats(req.user.id);
 
     return res.status(200).json({
       success: true,

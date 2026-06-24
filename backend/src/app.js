@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const taskRoutes = require('./routes/taskRoutes');
+const authRoutes = require('./routes/authRoutes');
 const errorHandler = require('./middleware/errorHandler');
 const { setupSwagger } = require('./docs/swagger');
 
@@ -15,6 +16,7 @@ app.use(express.urlencoded({ extended: true }));
 setupSwagger(app);
 
 // Register API Routes
+app.use('/api/auth', authRoutes);
 app.use('/api', taskRoutes);
 
 // Fallback Middleware: Handle Unknown/Undefined API Routes
