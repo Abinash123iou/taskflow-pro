@@ -1,50 +1,59 @@
 # TaskFlow Pro: Backend Architectural Guide
 
-This guide provides a comprehensive overview of the design patterns, layer roles, request lifecycle, and production readiness of the TaskFlow Pro backend.
+This guide provides a comprehensive overview of the design patterns, layer roles, request lifecycle, authentication mechanisms, test environment configurations, and production readiness of the TaskFlow Pro backend.
 
 ---
 
 ## 1. Visual Architecture Diagram
 
-Below is the request-response lifecycle of the application:
+Below is the end-to-end request-response lifecycle of the application:
 
 ```
-               +----------------------------------------+
-               |              Client / UI               |
-               +-------------------+--------------------+
-                                   | HTTP Request (e.g., POST /api/tasks)
-                                   v
-               +-------------------+--------------------+
-               |      Express Router (taskRoutes.js)     |
-               +-------------------+--------------------+
-                                   | Routes request to endpoints
-                                   v
-               +-------------------+--------------------+
-               |  Validation Middleware (validateTask.js) |
-               +-------------------+--------------------+
-                                   | Rejects invalid body payloads (400 Bad Request)
-                                   v
-               +-------------------+--------------------+
-               |      Controller Layer (taskController.js)|
-               +-------------------+--------------------+
-                                   | Extracts query/params and controls response codes
-                                   v
-               +-------------------+--------------------+
-               |       Service Layer (taskService.js)   |
-               +-------------------+--------------------+
-                                   | Contains business rules, queries models in parallel
-                                   v
-               +-------------------+--------------------+
-               |        Sequelize Model (Task.js)       |
-               +-------------------+--------------------+
-                                   | Maps models, defines constraints & datatypes
-                                   v
-               +-------------------+--------------------+
-               |         MySQL Database Engine          |
-               +-------------------+--------------------+
-                                   | Data storage & persistence
-                                   v
-[Response Flow] Database -> Model -> Service -> Controller -> Client (HTTP Response)
+               +-------------------------------------------------------+
+               |                      Client / UI                      |
+               +---------------------------+---------------------------+
+                                           | HTTP Request (e.g., GET /api/tasks)
+                                           v
+               +-------------------------------------------------------+
+               |             Express Router (app.js / *Routes.js)      |
+               +---------------------------+---------------------------+
+                                           | Routes request to correct endpoints
+                                           v
+               +-------------------------------------------------------+
+               |        Authentication Middleware (authMiddleware.js)  |
+               +---------------------------+---------------------------+
+                                           | Decodes JWT & populates req.user.id (401 if invalid)
+                                           v
+               +-------------------------------------------------------+
+               |      Validation Middleware (validate* / validateAuth)  |
+               +---------------------------+---------------------------+
+                                           | Rejects invalid request bodies immediately (400)
+                                           v
+               +-------------------------------------------------------+
+               |               Controller Layer (*Controller.js)       |
+               +---------------------------+---------------------------+
+                                           | Extracts query/params/body and propagates req.user.id
+                                           v
+               +-------------------------------------------------------+
+               |                Service Layer (*Service.js)            |
+               +---------------------------+---------------------------+
+                                           | Performs tenant-isolated business rules and pagination
+                                           v
+               +-----------------------------+-----------------------------+
+               |    Sequelize ORM Model      |    Sequelize ORM Model      |
+               |         (User.js)           |         (Task.js)           |
+               +--------------+--------------+--------------+--------------+
+                              |                             |
+                              +--------------+--------------+
+                                             | Reads/Writes SQL
+                                             v
+               +-------------------------------------------------------+
+               |                  Database Layer                       |
+               |     (MySQL: Dev/Prod)   |   (SQLite In-Memory: Tests) |
+               +-------------------------------------------------------+
+                                             | Persists information
+                                             v
+ [Response Flow] Database -> Models -> Services -> Controllers -> Client (HTTP Response)
 ```
 
 ---
@@ -54,57 +63,117 @@ Below is the request-response lifecycle of the application:
 ---
 
 ### Module 1: `config/db.js`
-* **Purpose:** Sets up and manages the Sequelize connection instance to the MySQL database.
-* **Responsibilities:** Initializes the Sequelize library with database credentials, connection pooling, and options, and exposes connection health checking.
-* **Why it exists:** Isolates database infrastructure and configuration parameters from the rest of the application.
-* **How it interacts with other modules:** Provides the initialized `sequelize` instance utilized by Sequelize Models (`models/Task.js`) to interact with database tables.
-* **Real-world industry usage:** Used to optimize database resource allocation via connection pools (`max`, `min`, `acquire`, `idle`) to prevent exhausting database connections under high load.
-* **Interview explanation:** *"This file is the bridge to our database. It reads our database credentials from env files, sets up a connection pool, and exports an instance that our tables use to execute queries."*
-* **Best practices followed:** Used environment variables for credentials and configured connection pooling.
-* **Future scalability considerations:** Can be scaled to support read/write database separation (replica connections) to balance query loads.
+* **Purpose:** Sets up and manages the Sequelize connection instance.
+* **Responsibilities:** Establishes connection settings based on the run environment (`NODE_ENV`).
+* **Why it exists:** Isolates database infrastructure and connection drivers from the rest of the application.
+* **How it interacts with other modules:** Provides the initialized `sequelize` instance utilized by all Sequelize Models.
+* **Real-world industry usage:** Dynamically switches databases based on environment targets. Utilizes connection pools (`max`, `min`, `acquire`, `idle`) to prevent database resource exhaustion.
+* **Interview explanation:** *"This file is the bridge to our database. In development/production, it reads credentials from env files to connect to MySQL. In testing, it automatically boots up a fast, isolated SQLite in-memory database to keep tests decoupled and independent."*
+* **Best practices followed:** Used environment variables for credentials, configured connection pools, and decoupled the testing environment database.
+* **Future scalability considerations:** Can be scaled to support read/write database separation (replica pools) to balance query loads.
 
 ---
 
-### Module 2: `models/Task.js`
+### Module 2: `models/User.js`
+* **Purpose:** Defines the data schema mapping and constraints for the `users` table.
+* **Responsibilities:** Declares database properties (username, email, password), column format validations, and model configurations.
+* **Why it exists:** Handles authorization accounts mapping and enforces unique indexes for emails.
+* **How it interacts with other modules:** Referenced by `models/Task.js` to build foreign key constraints (`user_id`). Imported by `services/authService.js` to create or retrieve accounts.
+* **Real-world industry usage:** Models user accounts and profile boundaries in relational databases.
+* **Interview explanation:** *"This model maps to the 'users' table in our database. It handles credentials storage and validates incoming formats, ensuring username lengths and email formats are valid before saving."*
+* **Best practices followed:** Declared unique indexes on emails and excluded passwords from JSON outputs.
+* **Future scalability considerations:** Can easily accommodate details like authorization roles (admin, manager, user) or soft-deletes.
+
+---
+
+### Module 3: `models/Task.js`
 * **Purpose:** Defines the data schema mapping and database-level constraints for the `tasks` table.
-* **Responsibilities:** Declares database properties, column validation rules (e.g., title requirements), and model configuration (e.g., timestamps).
-* **Why it exists:** Acts as the Object-Relational Mapping (ORM) layer, letting developers write queries using JavaScript objects instead of writing raw SQL commands.
-* **How it interacts with other modules:** Imported by `services/taskService.js` to execute queries (like `Task.create()` or `Task.findAll()`).
-* **Real-world industry usage:** Defines schema structures and index properties within the database cleanly without writing complex migrations manually.
-* **Interview explanation:** *"This file represents what a 'Task' looks like in our database. It defines columns like title, description, and status, and applies rules like ensuring a title cannot be empty before inserting it."*
-* **Best practices followed:** Defined explicit table mappings (`tableName`) and mapping helper configurations (`underscored: true`).
-* **Future scalability considerations:** Can easily be updated to define associations (like mapping tasks to specific users: `Task.belongsTo(User)`) as requirements grow.
+* **Responsibilities:** Declares task attributes (title, description, status, user_id) and declares relations with the `User` model.
+* **Why it exists:** Maps task schemas and links tasks to specific users.
+* **How it interacts with other modules:** Declares associations: `User.hasMany(Task)` and `Task.belongsTo(User)`. Imported by `services/taskService.js` to execute queries.
+* **Real-world industry usage:** Defines entity columns, indexes, and database relations cleanly.
+* **Interview explanation:** *"This file represents what a 'Task' looks like. It defines fields like title, description, and status, and establishes a foreign key mapping user_id to the users table."*
+* **Best practices followed:** Defined explicit foreign key constraints, table mappings (`tableName: 'tasks'`), and mapping helper configurations (`underscored: true`).
+* **Future scalability considerations:** Indexes can be added to the `user_id` and `status` columns to optimize query speeds.
 
 ---
 
-### Module 3: `services/taskService.js`
-* **Purpose:** Houses the core business logic of the application.
-* **Responsibilities:** Handles logic for creating tasks, fetching tasks with search/status filters, updating statuses, deleting tasks, and calculating dashboard statistics.
-* **Why it exists:** Keeps business logic separate from transport protocols (HTTP/Express), allowing developers to change database engines or reuse logic without modifying controllers.
+### Module 4: `services/authService.js`
+* **Purpose:** Houses accounts management business logic.
+* **Responsibilities:** Handles business logic for user registration (salting and hashing passwords) and user login (verifying passwords, creating JWTs).
+* **Why it exists:** Keeps authentication logic separated from transport protocols, making registration/login reusable across HTTP, WebSockets, or CLI layers.
+* **How it interacts with other modules:** Queries `models/User.js` and is imported by `controllers/authController.js`.
+* **Real-world industry usage:** Integrates cryptography tools (like `bcryptjs`) and secure session signing (like `jsonwebtoken`).
+* **Interview explanation:** *"This service handles registration and logins. For registration, it hashes the password using bcrypt. For logins, it validates credentials and signs a JWT containing user details."*
+* **Best practices followed:** Strictly hashed passwords (never saved as plain text) and used configurable expiration times for signed JWTs.
+* **Future scalability considerations:** Can be extended to support OAuth2 (Google, GitHub) or multi-factor authentication.
+
+---
+
+### Module 5: `services/taskService.js`
+* **Purpose:** Houses task management business logic.
+* **Responsibilities:** Creates tasks, fetches tasks with search/status filters/pagination, updates status, deletes tasks, and calculates stats.
+* **Why it exists:** Decouples core business rules from request handlers.
 * **How it interacts with other modules:** Queries `models/Task.js` and is imported and called by `controllers/taskController.js`.
-* **Real-world industry usage:** Implements transactions, calculations, and external API requests.
-* **Interview explanation:** *"This is the brain of our application. If we need to find tasks or count them for statistics, the controller asks this service, which does the database queries and returns the results."*
-* **Best practices followed:** Used asynchronous flow control with concurrency handlers (`Promise.all`) for parallel database queries.
-* **Future scalability considerations:** Can easily accommodate integration with caching layers (like Redis) to speed up stats queries without changing controller logic.
+* **Real-world industry usage:** Handles multi-tenant filters, transactions, and pagination offsets.
+* **Interview explanation:** *"This handles task operations. Every query is filtered by the user's ID to keep data secure. It also supports offset-based pagination to return page size and page metadata."*
+* **Best practices followed:** Used `Task.findAndCountAll` for database pagination, concurrency handlers (`Promise.all`) for parallel database queries, and enforced tenant isolation boundaries.
+* **Future scalability considerations:** Caching systems (like Redis) can be integrated to cache paginated task arrays or dashboard statistics.
 
 ---
 
-### Module 4: `controllers/taskController.js`
-* **Purpose:** Integrates the application with the transport protocol (Express/HTTP).
-* **Responsibilities:** Unpacks HTTP requests (body, headers, path params), invokes the services, and returns formatted HTTP responses with appropriate status codes (e.g., `201 Created` or `200 OK`).
-* **Why it exists:** Keeps the service layer separate from HTTP concepts (`req`, `res`), allowing logic to be tested or migrated independently of Express.
-* **How it interacts with other modules:** Receives requests from routes (`routes/taskRoutes.js`), calls services (`services/taskService.js`), and passes errors to the next middleware (`errorHandler.js`).
-* **Real-world industry usage:** Manages request validation, route handling, and standardizes payload schemas.
-* **Interview explanation:** *"This layer receives the HTTP request from the router, extracts the data sent by the user, calls the correct service, and returns the response back to the user with a standard JSON structure."*
-* **Best practices followed:** Applied consistent JSON payload schemas `{ success, message, data }` and mapped proper HTTP response codes.
-* **Future scalability considerations:** Can easily transition to support other transport formats (like WebSockets or gRPC) by swapping or supplementing this layer.
+### Module 6: `controllers/authController.js`
+* **Purpose:** Maps accounts transport requests to auth services.
+* **Responsibilities:** Extracts body values, calls auth services, and returns JWT tokens and registration details.
+* **Why it exists:** Separates HTTP request parsers from password encryption and token signing logic.
+* **How it interacts with other modules:** Linked to routes (`routes/authRoutes.js`) and calls services (`services/authService.js`).
+* **Real-world industry usage:** Handles user sessions and maps standard success/error responses.
+* **Interview explanation:** *"This controller handles logins and registration HTTP requests. It extracts inputs, calls the AuthService to verify or register, and returns the signed token in a standard JSON response."*
+* **Best practices followed:** Sanitized responses by deleting passwords from payloads.
+* **Future scalability considerations:** Can set cookies containing HTTP-only JWTs to protect against Cross-Site Scripting (XSS) attacks.
 
 ---
 
-### Module 5: `middleware/validateTask.js`
-* **Purpose:** Validates request payloads before they reach controllers.
+### Module 7: `controllers/taskController.js`
+* **Purpose:** Maps task transport requests to task services.
+* **Responsibilities:** Unpacks HTTP requests (body, query, route parameters), passes parameters along with the user's ID to services, and returns formatted JSON.
+* **Why it exists:** Separates Express concepts (`req`, `res`) from business operations.
+* **How it interacts with other modules:** Positioned between routes and services, extracting `req.user.id` to enforce authorization.
+* **Real-world industry usage:** Handles HTTP status codes, extracts headers, and handles response mapping.
+* **Interview explanation:** *"This layer receives the HTTP request, pulls filters and pagination from query params, extracts the user ID from the request context, and passes everything to the task service."*
+* **Best practices followed:** Standardized pagination payloads and mapped correct HTTP codes (e.g. `201 Created`).
+* **Future scalability considerations:** Can integrate schema compression to reduce payload transit sizes.
+
+---
+
+### Module 8: `middleware/authMiddleware.js`
+* **Purpose:** Guards routes by verifying JSON Web Tokens.
+* **Responsibilities:** Extracts the Bearer token from authorization headers, validates it, and attaches decoded contents to `req.user`.
+* **Why it exists:** Secures routes, rejecting requests from unauthenticated clients.
+* **How it interacts with other modules:** Positioned in the routing chain before controllers to protect endpoints.
+* **Real-world industry usage:** Enforces API access control and maps session payloads.
+* **Interview explanation:** *"This middleware checks the 'Authorization' header for a Bearer token. It decrypts the token using our secret key. If valid, it attaches the user details to the request and calls next(); otherwise, it returns a 401 response."*
+* **Best practices followed:** Fail-fast strategy on missing/malformed auth headers.
+* **Future scalability considerations:** Can support role-based permission arrays.
+
+---
+
+### Module 9: `middleware/validateAuth.js`
+* **Purpose:** Validates registration and login payloads.
+* **Responsibilities:** Ensures username length constraints and email formats are valid before hitting service logic.
+* **Why it exists:** Rejects bad requests before they consume database connections or hashing resources.
+* **How it interacts with other modules:** Positioned between auth routes and controllers.
+* **Real-world industry usage:** Input sanitization and format validation.
+* **Interview explanation:** *"This acts as a guard. If a user tries to register with a 3-character password, it blocks the request immediately with a 400 response, avoiding unnecessary database lookups."*
+* **Best practices followed:** Returns comprehensive validation arrays.
+* **Future scalability considerations:** Can transition to schema-based libraries like Zod.
+
+---
+
+### Module 10: `middleware/validateTask.js`
+* **Purpose:** Validates task creation and update payloads.
 * **Responsibilities:** Validates mandatory fields and validation constraints (like minimum lengths) and returns errors immediately if validation fails.
-* **Why it exists:** Implements a "fail-fast" strategy, rejecting bad requests before they consume database resources or service execution time.
+* **Why it exists:** Rejects bad requests before they consume database resources or service execution time.
 * **How it interacts with other modules:** Positioned between the router and the controller in the Express pipeline.
 * **Real-world industry usage:** Sanitizes inputs and protects the system from malformed payloads.
 * **Interview explanation:** *"This acts as a guard. If a user tries to create a task without a description, this middleware intercepts the request, blocks it, and returns an error response before the server does any database queries."*
@@ -113,7 +182,7 @@ Below is the request-response lifecycle of the application:
 
 ---
 
-### Module 6: `middleware/errorHandler.js`
+### Module 11: `middleware/errorHandler.js`
 * **Purpose:** Catches and standardizes all errors occurring across the request lifecycle.
 * **Responsibilities:** Catches errors, formats them into a consistent structure, maps database validation errors to `400 Bad Request`, and logs stacks.
 * **Why it exists:** Prevents application crashes and keeps error responses consistent, while hiding sensitive database stacks from users in production.
@@ -125,7 +194,19 @@ Below is the request-response lifecycle of the application:
 
 ---
 
-### Module 7: `routes/taskRoutes.js`
+### Module 12: `routes/authRoutes.js`
+* **Purpose:** Maps registration and login URLs.
+* **Responsibilities:** Links `/register` and `/login` to validation middlewares and controllers.
+* **Why it exists:** Centralizes authorization route registrations.
+* **How it interacts with other modules:** Mounted by `app.js` under `/api/auth`.
+* **Real-world industry usage:** Entry points for login and registration portals.
+* **Interview explanation:** *"This file defines our authentication routes. It points POST requests for registration and logins to their respective validation middlewares and controllers."*
+* **Best practices followed:** Kept authorization distinct from task management paths.
+* **Future scalability considerations:** Can add routes for password-resets or logout invalidation.
+
+---
+
+### Module 13: `routes/taskRoutes.js`
 * **Purpose:** Maps specific HTTP endpoints to their validation middlewares and controllers.
 * **Responsibilities:** Declares endpoints (`GET`, `POST`, `PUT`, `DELETE`) and handles the routing execution path.
 * **Why it exists:** Centralizes API endpoint mapping, making the API surface easy to review and modify.
@@ -137,7 +218,7 @@ Below is the request-response lifecycle of the application:
 
 ---
 
-### Module 8: `docs/swagger.js`
+### Module 14: `docs/swagger.js`
 * **Purpose:** Configures and hosts the Swagger/OpenAPI documentation.
 * **Responsibilities:** Declares API contracts, schemas, parameters, and responses, and exposes the interactive `/api-docs` interface.
 * **Why it exists:** Standardizes API specs, allowing frontend developers and external teams to test endpoints interactively.
@@ -149,7 +230,7 @@ Below is the request-response lifecycle of the application:
 
 ---
 
-### Module 9: `app.js`
+### Module 15: `app.js`
 * **Purpose:** Initializes and configures the Express application framework.
 * **Responsibilities:** Configures global settings, mounts body parsers, registers CORS rules, mounts API routers, and handles 404 paths.
 * **Why it exists:** Separates web framework configuration from network socket binding, making it easier to run tests without occupying local ports.
@@ -161,7 +242,7 @@ Below is the request-response lifecycle of the application:
 
 ---
 
-### Module 10: `server.js`
+### Module 16: `server.js`
 * **Purpose:** Serves as the entry point that runs the application process.
 * **Responsibilities:** Loads environment variables, connects to the database, syncs database schemas, and starts the Express server.
 * **Why it exists:** Serves as the bootstrapping script that starts up all backend dependencies and handles startup failures.
@@ -178,16 +259,19 @@ Below is the request-response lifecycle of the application:
 ```
 backend/
 ├── src/
-│   ├── config/         # Database connection configuration (db.js)
-│   ├── controllers/    # Transport layer (extracts request data, formats response)
-│   ├── docs/           # Interactive Swagger UI OpenAPI setup (swagger.js)
-│   ├── middleware/     # Guardrails (validateTask.js, errorHandler.js)
-│   ├── models/         # Sequelize data schemas & database mappings (Task.js)
-│   ├── routes/         # Routing endpoints (taskRoutes.js)
-│   ├── services/       # Core business logic layer (taskService.js)
-│   └── app.js          # App bootstrapper (middleware mounts & setup)
+│   ├── config/         # Connection initialization & environment filters (db.js)
+│   ├── controllers/    # Request parameters extractor & response mapper (authController.js, taskController.js)
+│   ├── docs/           # OpenAPI documentation configurations & Swagger UI endpoints (swagger.js)
+│   ├── middleware/     # Validation, authentication, and error boundaries (authMiddleware.js, validateAuth.js, validateTask.js, errorHandler.js)
+│   ├── models/         # Database relationships and table schemas definitions (User.js, Task.js)
+│   ├── routes/         # Endpoint paths mapping (authRoutes.js, taskRoutes.js)
+│   ├── services/       # Multi-tenant business logic and hashing handlers (authService.js, taskService.js)
+│   └── app.js          # Middleware registries and path bootstrappers
+├── tests/              # Automated unit/integration test suites
+│   ├── auth.test.js    # Tests for registration, login, and validation errors
+│   └── task.test.js    # Tests for pagination, searching, stats, and tenant isolation boundaries
 ├── .env                # App environment configurations
-├── package.json        # Dependencies & scripts manager
+├── package.json        # Dependencies configurations and test runner scripts
 └── server.js           # Server process entry point
 ```
 
@@ -195,33 +279,34 @@ backend/
 
 ## 4. Why this Architecture is Production-Ready
 
-1. **Separation of Concerns:** Each module has a single responsibility. Business logic (`services`) does not know about HTTP requests (`controllers`), and routing maps routes without executing queries.
-2. **Robust Validation:** Uses a "fail-fast" strategy. Request payloads are validated at the middleware level before hitting the database, preventing unnecessary query overhead.
-3. **Consistent Error Schema:** Standardizes all API errors, ensuring clients receive actionable error payloads with proper HTTP status codes.
-4. **Interactive API Docs:** Swagger documentation is built-in and accessible, making frontend integration quick and developer-friendly.
-5. **Secure Configuration:** Sensitive credentials are loaded using environment variables (`.env`), keeping secrets out of version control.
+1. **Separation of Concerns:** Each module has a single responsibility. Business logic does not know about Express routing or HTTP structures.
+2. **Secure Passwords & Session Tokens:** Uses `bcryptjs` for secure password hashing and `jsonwebtoken` for secure session management.
+3. **Multi-tenant Data Isolation:** Database queries in `taskService.js` are strictly scoped by the user's ID, preventing data leaks between accounts.
+4. **Isolated Test Environments:** Automatically switches to an in-memory SQLite database when tests are run (`NODE_ENV=test`), making tests fast and portable.
+5. **Robust Validation:** Implements a "fail-fast" strategy, rejecting invalid payloads at the middleware level before executing query operations.
+6. **Consistent Error Payload:** All errors are caught and returned in a standard schema, shielding internal database structures from clients.
 
 ---
 
 ## 5. Common Interview Questions & Answers
 
-### Q1: What is the difference between Sequelize `sync()` and migrations?
-**Answer:** `sequelize.sync()` automatically creates or updates database tables based on Sequelize model definitions. It is simple and useful for local development. However, in production, migrations are preferred. Migrations are step-by-step, version-controlled scripts that record database changes over time, allowing safe updates and rollbacks without losing data.
+### Q1: How does password hashing via bcrypt work and why is it used?
+**Answer:** Bcrypt is a password-hashing function designed specifically to secure passwords. It incorporates a "salt" (a random value added to the password) to protect against rainbow table attacks. It also uses a configurable work factor (rounds of hashing) to slow down brute-force attacks, keeping hashed values secure even if the database is compromised.
 
-### Q2: Why separate the Service layer from the Controller layer?
-**Answer:** Separating them keeps code clean and modular (Separation of Concerns). The controller only handles HTTP protocols (status codes, headers, and parsing request inputs). The service layer contains the actual business rules and operations. This allows us to reuse the service logic (e.g., in cron jobs or WebSocket controllers) and test business logic without mocking HTTP objects.
+### Q2: What are JWTs and how do we use them to secure routes?
+**Answer:** JSON Web Tokens (JWTs) are compact, URL-safe tokens used to securely transfer information between a client and a server. In our app, when a user logs in, we sign a token containing their user ID, username, and email. The client sends this token in the `Authorization` header of subsequent requests. Our auth middleware verifies the signature, and if valid, attaches the decoded user data to the request context.
 
-### Q3: Why is `errorHandler` registered at the very end in `app.js`?
-**Answer:** Express executes middlewares in the order they are registered. Error-handling middlewares are only triggered when a route or middleware calls `next(error)`. Registering the error handler at the end ensures that any errors occurring in upstream routes or middlewares are caught and processed correctly.
+### Q3: Why use an in-memory SQLite database for running integration tests?
+**Answer:** Running integration tests against a live development MySQL database can lead to data contamination, slow test executions, and dependencies on external database engines. An in-memory SQLite database runs entirely in-memory, boots up instantly, and is completely wiped out after tests finish, providing a clean slate for every test run without affecting local development data.
 
-### Q4: Why use connection pooling in a database?
-**Answer:** Opening a new database connection for every request is expensive and slows down performance. Connection pooling keeps a collection of active, reusable connections. When a request comes in, it checks out an existing connection, uses it, and returns it to the pool, improving response times and preventing database overload.
+### Q4: How does pagination work at the database query level?
+**Answer:** Pagination limits the number of rows returned by a query. In SQL, it utilizes the `LIMIT` (maximum rows to return) and `OFFSET` (number of rows to skip) clauses. In Sequelize, we compute the offset as `(page - 1) * limit` and pass `limit` and `offset` to `Task.findAndCountAll()`. This returns the matching subset of rows along with the total count, allowing us to calculate the total pages.
 
 ---
 
 ## 6. Scaling Improvements for Enterprise Systems
 
-* **DB Migrations:** Replace `sequelize.sync()` with a version-controlled migration setup (like `sequelize-cli`) to deploy schema updates safely in production.
-* **Declarative Validation:** Migrate from manual JS validation checks to schema validation libraries (like Zod or Joi) for more maintainable validation rules.
-* **Logging Framework:** Upgrade `console.log` and `console.error` to structured JSON logging libraries (like Winston or Pino) to integrate with log aggregation platforms (like Elasticsearch or Datadog).
-* **Caching Layer:** Implement a caching system (like Redis) for read-heavy operations, such as dashboard stats queries, to reduce database query overhead.
+* **Refresh Tokens:** Transition from a single access token to a dual-token system (short-lived access tokens and longer-lived refresh tokens stored securely in HTTP-only cookies).
+* **API Rate Limiting:** Implement rate-limiting middleware (like `express-rate-limit`) to protect auth endpoints against brute-force attacks.
+* **Database Migrations:** Replace model sync operations with version-controlled migrations (like `sequelize-cli`) to handle production database schemas safely.
+* **Structured Logging:** Replace console logging with a structured logging library (like Winston or Pino) to export JSON logs to aggregation servers.
