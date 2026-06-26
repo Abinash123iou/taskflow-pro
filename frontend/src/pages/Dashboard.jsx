@@ -289,22 +289,13 @@ const Dashboard = () => {
                 <span className="text-[10px] font-semibold text-outline">4 hours ago</span>
               </div>
               
+              
               <div className="relative pl-8 group">
                 <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-green-100 dark:bg-green-950 border-2 border-surface flex items-center justify-center z-10 transition-transform group-hover:scale-110">
                   <span className="material-symbols-outlined text-[12px] text-green-700 dark:text-green-300">task_alt</span>
                 </div>
                 <p className="text-xs text-on-surface">
                   <span className="font-bold">You</span> marked <span className="font-semibold text-primary">Budget Analysis</span> as completed
-                </p>
-                <span className="text-[10px] font-semibold text-outline">Yesterday</span>
-              </div>
-              
-              <div className="relative pl-8 group">
-                <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-tertiary-fixed border-2 border-surface flex items-center justify-center z-10 transition-transform group-hover:scale-110">
-                  <span className="material-symbols-outlined text-[12px] text-on-tertiary-fixed-variant">attachment</span>
-                </div>
-                <p className="text-xs text-on-surface">
-                  <span className="font-bold">Marcus Frey</span> attached 4 files to <span className="font-semibold text-primary">Investor Pitch Deck</span>
                 </p>
                 <span className="text-[10px] font-semibold text-outline">Yesterday</span>
               </div>
