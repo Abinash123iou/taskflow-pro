@@ -132,11 +132,11 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Main Grid: Recent Tasks & Right Panels */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Main Grid: Recent Tasks */}
+      <div className="w-full">
         
-        {/* Left Column: Recent Tasks Table (8/12) */}
-        <section className="lg:col-span-8 space-y-4">
+        {/* Left Column: Recent Tasks Table */}
+        <section className="w-full space-y-4">
           <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
             
             <div className="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
@@ -209,101 +209,6 @@ const Dashboard = () => {
             )}
           </div>
         </section>
-
-        {/* Right Column: Timeline & Upcoming Deadlines (4/12) */}
-        <aside className="lg:col-span-4 space-y-6">
-          
-          {/* Upcoming Deadlines */}
-          <div className="bg-surface border border-outline-variant rounded-xl shadow-sm p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-base font-bold text-on-surface">Upcoming Deadlines</h3>
-              <span className="material-symbols-outlined text-outline">event</span>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="flex gap-4 group cursor-pointer">
-                <div className="flex flex-col items-center bg-surface-container-low px-3 py-2 rounded-lg border border-outline-variant min-w-[56px] transition-colors group-hover:bg-primary-fixed">
-                  <span className="text-[10px] font-bold text-on-surface-variant group-hover:text-primary uppercase tracking-wider">OCT</span>
-                  <span className="text-lg font-bold text-on-surface">25</span>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <p className="font-semibold text-body-sm text-on-surface group-hover:text-primary transition-colors">Client Onboarding Call</p>
-                  <p className="text-xs text-on-surface-variant">10:00 AM • Enterprise Plan</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-4 group cursor-pointer">
-                <div className="flex flex-col items-center bg-surface-container-low px-3 py-2 rounded-lg border border-outline-variant min-w-[56px] transition-colors group-hover:bg-primary-fixed">
-                  <span className="text-[10px] font-bold text-on-surface-variant group-hover:text-primary uppercase tracking-wider">OCT</span>
-                  <span className="text-lg font-bold text-on-surface">27</span>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <p className="font-semibold text-body-sm text-on-surface group-hover:text-primary transition-colors">Security Patch Deployment</p>
-                  <p className="text-xs text-on-surface-variant">02:30 PM • Critical</p>
-                </div>
-              </div>
-              
-              <div className="flex gap-4 group cursor-pointer">
-                <div className="flex flex-col items-center bg-surface-container-low px-3 py-2 rounded-lg border border-outline-variant min-w-[56px] transition-colors group-hover:bg-primary-fixed">
-                  <span className="text-[10px] font-bold text-on-surface-variant group-hover:text-primary uppercase tracking-wider">OCT</span>
-                  <span className="text-lg font-bold text-on-surface">30</span>
-                </div>
-                <div className="flex flex-col justify-center">
-                  <p className="font-semibold text-body-sm text-on-surface group-hover:text-primary transition-colors">Alpha Launch V4.2</p>
-                  <p className="text-xs text-on-surface-variant">All Day • Product Team</p>
-                </div>
-              </div>
-            </div>
-            
-            <button 
-              onClick={() => navigate('/tasks')}
-              className="w-full mt-6 py-2 border border-outline-variant rounded-lg text-on-surface-variant font-bold text-xs tracking-wider uppercase hover:bg-surface-container-low transition-all cursor-pointer"
-            >
-              Full Calendar View
-            </button>
-          </div>
-
-          {/* Activity Timeline */}
-          <div className="bg-surface border border-outline-variant rounded-xl shadow-sm p-4">
-            <h3 className="text-base font-bold text-on-surface mb-4">Activity Timeline</h3>
-            
-            <div className="relative space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-outline-variant">
-              
-              <div className="relative pl-8 group">
-                <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-primary-container border-2 border-surface flex items-center justify-center z-10 transition-transform group-hover:scale-110">
-                  <span className="material-symbols-outlined text-[12px] text-on-primary-container">edit</span>
-                </div>
-                <p className="text-xs text-on-surface">
-                  <span className="font-bold">Sarah Chen</span> updated the <span className="font-semibold text-primary">Landing Page Re-design</span>
-                </p>
-                <span className="text-[10px] font-semibold text-outline">2 hours ago</span>
-              </div>
-              
-              <div className="relative pl-8 group">
-                <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-secondary-container border-2 border-surface flex items-center justify-center z-10 transition-transform group-hover:scale-110">
-                  <span className="material-symbols-outlined text-[12px] text-on-secondary-container">add_comment</span>
-                </div>
-                <p className="text-xs text-on-surface">
-                  <span className="font-bold">James Wilson</span> left a comment on <span className="font-semibold text-primary">API Implementation</span>
-                </p>
-                <span className="text-[10px] font-semibold text-outline">4 hours ago</span>
-              </div>
-              
-              
-              <div className="relative pl-8 group">
-                <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-green-100 dark:bg-green-950 border-2 border-surface flex items-center justify-center z-10 transition-transform group-hover:scale-110">
-                  <span className="material-symbols-outlined text-[12px] text-green-700 dark:text-green-300">task_alt</span>
-                </div>
-                <p className="text-xs text-on-surface">
-                  <span className="font-bold">You</span> marked <span className="font-semibold text-primary">Budget Analysis</span> as completed
-                </p>
-                <span className="text-[10px] font-semibold text-outline">Yesterday</span>
-              </div>
-
-            </div>
-          </div>
-
-        </aside>
       </div>
     </main>
   );
