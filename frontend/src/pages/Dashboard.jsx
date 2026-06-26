@@ -1,106 +1,320 @@
-import React from 'react';
-import StatsCards from '../components/dashboard/StatsCards';
-import SearchBar from '../components/dashboard/SearchBar';
-import StatusFilter from '../components/dashboard/StatusFilter';
-import TaskTable from '../components/dashboard/TaskTable';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
+import StatsCards from '../components/StatsCards';
 
-/**
- * Dashboard Component
- * Serves as the primary page container for TaskFlow Pro's task management portal.
- * Handles the responsive layout grid and renders the key section placeholders.
- */
 const Dashboard = () => {
+  const { user, token } = useAuth();
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({ totalTasks: 0, pendingTasks: 0, inProgressTasks: 0, completedTasks: 0 });
+  const [recentTasks, setRecentTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      
+      const config = {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      };
+
+      const [statsRes, tasksRes] = await Promise.all([
+        axios.get('http://localhost:5000/tasks/stats', config),
+        axios.get('http://localhost:5000/tasks?limit=5', config)
+      ]);
+
+      if (statsRes.data.success) {
+        setStats(statsRes.data.data);
+      }
+      if (tasksRes.data.success) {
+        setRecentTasks(tasksRes.data.data.tasks || []);
+      }
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError('Failed to fetch dashboard overview data.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [token]);
+
+  // Priority indicator dots mapping
+  const getPriorityDot = (priority) => {
+    switch (priority) {
+      case 'High':
+      case 'Urgent':
+      case 'Critical':
+        return 'bg-error active-dot';
+      case 'Medium':
+        return 'bg-primary-container active-dot';
+      case 'Low':
+      default:
+        return 'bg-outline active-dot';
+    }
+  };
+
+  // Status badge styling mapping
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case 'In Progress':
+        return 'bg-secondary-container text-on-secondary-fixed-variant';
+      case 'Completed':
+        return 'bg-primary-fixed text-on-primary-fixed-variant';
+      case 'Pending':
+      default:
+        return 'bg-tertiary-fixed text-on-tertiary-fixed-variant';
+    }
+  };
+
+  // Helper to format date
+  const formatDate = (dateStr) => {
+    if (!dateStr) return 'No due date';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 font-sans transition-colors duration-200">
-      {/* SaaS Navigation/Header */}
-      <header className="sticky top-0 z-10 bg-white border-b border-slate-200 shadow-sm backdrop-blur-md bg-white/95">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            {/* Branding/Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-600 text-white shadow-md shadow-blue-200 font-bold text-xl">
-                T
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-slate-900 tracking-tight">TaskFlow Pro</h1>
-                <p className="text-xs text-slate-500 hidden sm:block">Project Management Portal</p>
-              </div>
-            </div>
-
-            {/* Header Right Actions */}
-            <div className="flex items-center space-x-4">
-              {/* Add Task Button Placeholder */}
-              <button 
-                type="button"
-                className="inline-flex items-center justify-center px-4 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-sm hover:shadow transition-all duration-200 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              >
-                {/* SVG Plus Icon */}
-                <svg 
-                  className="w-5 h-5 mr-1.5 -ml-1 stroke-current" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  strokeWidth="2"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Add Task
-              </button>
-
-              {/* User Avatar Placeholder */}
-              <div className="w-9 h-9 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center overflow-hidden cursor-pointer hover:border-blue-500 transition-colors duration-200">
-                <span className="text-sm font-semibold text-slate-600">JD</span>
-              </div>
-            </div>
-          </div>
+    <main className="pt-24 pb-8 px-6 max-w-container-max mx-auto space-y-8">
+      {/* Hero / Greeting Section */}
+      <section className="flex flex-col md:flex-row justify-between items-end gap-6">
+        <div className="space-y-1.5">
+          <h1 className="text-3xl font-bold tracking-tight text-on-surface">
+            Welcome back, {user?.username || 'Alexander'}
+          </h1>
+          <p className="text-body-sm text-on-surface-variant">
+            Track progress, manage tasks, and improve productivity.
+          </p>
         </div>
-      </header>
-
-      {/* Main Dashboard Layout Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        {/* 1. Statistics Cards Section */}
-        <section aria-labelledby="statistics-heading">
-          <h2 id="statistics-heading" className="sr-only">Task Statistics</h2>
-          <StatsCards />
-        </section>
-
-        {/* 2. Controls & Actions Section (Search, Filters, Layout Grid) */}
-        <section 
-          className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-4 bg-white rounded-xl border border-slate-200/80 shadow-sm"
-          aria-labelledby="controls-heading"
-        >
-          <h2 id="controls-heading" className="sr-only">Search and Filters</h2>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => navigate('/tasks')}
+            className="px-5 py-2 border border-outline-variant text-on-surface hover:bg-surface-container-low transition-all font-semibold rounded-lg flex items-center gap-2 text-xs tracking-wider uppercase cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">list</span>
+            All Tasks
+          </button>
           
-          {/* Search Box Wrapper */}
-          <div className="w-full md:max-w-md">
-            <SearchBar />
-          </div>
+          <button 
+            onClick={fetchDashboardData}
+            className="px-5 py-2 border border-outline-variant text-on-surface hover:bg-surface-container-low transition-all font-semibold rounded-lg flex items-center gap-2 text-xs tracking-wider uppercase cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">refresh</span>
+            Refresh
+          </button>
 
-          {/* Status Filters Wrapper */}
-          <div className="flex items-center justify-start md:justify-end overflow-x-auto no-scrollbar">
-            <StatusFilter />
+          <button 
+            onClick={() => navigate('/tasks?create=true')}
+            className="px-5 py-2 bg-primary text-on-primary hover:bg-primary-container transition-all font-semibold rounded-lg shadow-md flex items-center gap-2 text-xs tracking-wider uppercase cursor-pointer"
+          >
+            <span className="material-symbols-outlined text-[18px]">add</span>
+            Create Task
+          </button>
+        </div>
+      </section>
+
+      {/* Metrics Section */}
+      <StatsCards stats={stats} />
+
+      {/* Error display */}
+      {error && (
+        <div className="p-4 bg-error-container text-on-error-container rounded-xl text-sm font-semibold border border-error/15 flex items-center gap-2">
+          <span className="material-symbols-outlined text-[20px]">error</span>
+          <span>{error}</span>
+        </div>
+      )}
+
+      {/* Main Grid: Recent Tasks & Right Panels */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Left Column: Recent Tasks Table (8/12) */}
+        <section className="lg:col-span-8 space-y-4">
+          <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
+            
+            <div className="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
+              <h2 className="text-lg font-bold text-on-surface">Recent Tasks</h2>
+              <button 
+                onClick={() => navigate('/tasks')}
+                className="text-primary font-bold hover:underline text-xs tracking-wider uppercase cursor-pointer"
+              >
+                View all tasks
+              </button>
+            </div>
+
+            {loading ? (
+              <div className="p-12 flex flex-col items-center justify-center gap-3">
+                <div className="h-8 w-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-xs font-semibold text-on-surface-variant tracking-wider uppercase animate-pulse">Loading tasks...</span>
+              </div>
+            ) : recentTasks.length === 0 ? (
+              <div className="p-12 text-center">
+                <span className="material-symbols-outlined text-outline text-[48px] mb-2">assignment_late</span>
+                <p className="text-on-surface-variant text-body-sm font-medium">No tasks found. Create a new task to get started!</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-surface-container-low border-b border-outline-variant">
+                      <th className="px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Title</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Status</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Priority</th>
+                      <th className="px-6 py-3 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Due Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-outline-variant bg-surface">
+                    {recentTasks.map((task) => (
+                      <tr 
+                        key={task.id} 
+                        onClick={() => navigate(`/tasks?edit=${task.id}`)}
+                        className="hover:bg-surface-container transition-colors cursor-pointer group"
+                      >
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-3">
+                            <span className="material-symbols-outlined text-outline group-hover:text-primary transition-colors text-[20px]">
+                              description
+                            </span>
+                            <span className="font-semibold text-body-sm text-on-surface">
+                              {task.title}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase ${getStatusBadge(task.status)}`}>
+                            {task.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <span className={`w-2 h-2 rounded-full ${getPriorityDot(task.priority)}`}></span>
+                            <span className="text-body-sm text-on-surface">{task.priority}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 text-xs font-semibold text-on-surface-variant">
+                          {formatDate(task.dueDate)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* 3. Task Table Section */}
-        <section 
-          className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden"
-          aria-labelledby="tasks-heading"
-        >
-          <div className="border-b border-slate-100 px-6 py-4 flex justify-between items-center">
-            <div>
-              <h2 id="tasks-heading" className="text-lg font-bold text-slate-900">Task List</h2>
-              <p className="text-sm text-slate-500">Manage, prioritize, and update your project tasks.</p>
+        {/* Right Column: Timeline & Upcoming Deadlines (4/12) */}
+        <aside className="lg:col-span-4 space-y-6">
+          
+          {/* Upcoming Deadlines */}
+          <div className="bg-surface border border-outline-variant rounded-xl shadow-sm p-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-base font-bold text-on-surface">Upcoming Deadlines</h3>
+              <span className="material-symbols-outlined text-outline">event</span>
+            </div>
+            
+            <div className="space-y-4">
+              <div className="flex gap-4 group cursor-pointer">
+                <div className="flex flex-col items-center bg-surface-container-low px-3 py-2 rounded-lg border border-outline-variant min-w-[56px] transition-colors group-hover:bg-primary-fixed">
+                  <span className="text-[10px] font-bold text-on-surface-variant group-hover:text-primary uppercase tracking-wider">OCT</span>
+                  <span className="text-lg font-bold text-on-surface">25</span>
+                </div>
+                <div className="flex flex-col justify-center">
+                  <p className="font-semibold text-body-sm text-on-surface group-hover:text-primary transition-colors">Client Onboarding Call</p>
+                  <p className="text-xs text-on-surface-variant">10:00 AM • Enterprise Plan</p>
+                </div>
+              </div>
+              
+              <div className="flex gap-4 group cursor-pointer">
+                <div className="flex flex-col items-center bg-surface-container-low px-3 py-2 rounded-lg border border-outline-variant min-w-[56px] transition-colors group-hover:bg-primary-fixed">
+                  <span className="text-[10px] font-bold text-on-surface-variant group-hover:text-primary uppercase tracking-wider">OCT</span>
+                  <span className="text-lg font-bold text-on-surface">27</span>
+                </div>
+                <div className="flex flex-col justify-center">
+                  <p className="font-semibold text-body-sm text-on-surface group-hover:text-primary transition-colors">Security Patch Deployment</p>
+                  <p className="text-xs text-on-surface-variant">02:30 PM • Critical</p>
+                </div>
+              </div>
+              
+              <div className="flex gap-4 group cursor-pointer">
+                <div className="flex flex-col items-center bg-surface-container-low px-3 py-2 rounded-lg border border-outline-variant min-w-[56px] transition-colors group-hover:bg-primary-fixed">
+                  <span className="text-[10px] font-bold text-on-surface-variant group-hover:text-primary uppercase tracking-wider">OCT</span>
+                  <span className="text-lg font-bold text-on-surface">30</span>
+                </div>
+                <div className="flex flex-col justify-center">
+                  <p className="font-semibold text-body-sm text-on-surface group-hover:text-primary transition-colors">Alpha Launch V4.2</p>
+                  <p className="text-xs text-on-surface-variant">All Day • Product Team</p>
+                </div>
+              </div>
+            </div>
+            
+            <button 
+              onClick={() => navigate('/tasks')}
+              className="w-full mt-6 py-2 border border-outline-variant rounded-lg text-on-surface-variant font-bold text-xs tracking-wider uppercase hover:bg-surface-container-low transition-all cursor-pointer"
+            >
+              Full Calendar View
+            </button>
+          </div>
+
+          {/* Activity Timeline */}
+          <div className="bg-surface border border-outline-variant rounded-xl shadow-sm p-4">
+            <h3 className="text-base font-bold text-on-surface mb-4">Activity Timeline</h3>
+            
+            <div className="relative space-y-6 before:absolute before:left-[11px] before:top-2 before:bottom-2 before:w-[1px] before:bg-outline-variant">
+              
+              <div className="relative pl-8 group">
+                <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-primary-container border-2 border-surface flex items-center justify-center z-10 transition-transform group-hover:scale-110">
+                  <span className="material-symbols-outlined text-[12px] text-on-primary-container">edit</span>
+                </div>
+                <p className="text-xs text-on-surface">
+                  <span className="font-bold">Sarah Chen</span> updated the <span className="font-semibold text-primary">Landing Page Re-design</span>
+                </p>
+                <span className="text-[10px] font-semibold text-outline">2 hours ago</span>
+              </div>
+              
+              <div className="relative pl-8 group">
+                <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-secondary-container border-2 border-surface flex items-center justify-center z-10 transition-transform group-hover:scale-110">
+                  <span className="material-symbols-outlined text-[12px] text-on-secondary-container">add_comment</span>
+                </div>
+                <p className="text-xs text-on-surface">
+                  <span className="font-bold">James Wilson</span> left a comment on <span className="font-semibold text-primary">API Implementation</span>
+                </p>
+                <span className="text-[10px] font-semibold text-outline">4 hours ago</span>
+              </div>
+              
+              <div className="relative pl-8 group">
+                <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-green-100 dark:bg-green-950 border-2 border-surface flex items-center justify-center z-10 transition-transform group-hover:scale-110">
+                  <span className="material-symbols-outlined text-[12px] text-green-700 dark:text-green-300">task_alt</span>
+                </div>
+                <p className="text-xs text-on-surface">
+                  <span className="font-bold">You</span> marked <span className="font-semibold text-primary">Budget Analysis</span> as completed
+                </p>
+                <span className="text-[10px] font-semibold text-outline">Yesterday</span>
+              </div>
+              
+              <div className="relative pl-8 group">
+                <div className="absolute left-0 top-1 w-6 h-6 rounded-full bg-tertiary-fixed border-2 border-surface flex items-center justify-center z-10 transition-transform group-hover:scale-110">
+                  <span className="material-symbols-outlined text-[12px] text-on-tertiary-fixed-variant">attachment</span>
+                </div>
+                <p className="text-xs text-on-surface">
+                  <span className="font-bold">Marcus Frey</span> attached 4 files to <span className="font-semibold text-primary">Investor Pitch Deck</span>
+                </p>
+                <span className="text-[10px] font-semibold text-outline">Yesterday</span>
+              </div>
+
             </div>
           </div>
-          
-          <div className="p-6">
-            <TaskTable />
-          </div>
-        </section>
-        
-      </main>
-    </div>
+
+        </aside>
+      </div>
+    </main>
   );
 };
 
