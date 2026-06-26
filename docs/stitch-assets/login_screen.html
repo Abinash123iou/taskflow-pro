@@ -1,0 +1,267 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Login | TaskFlow Pro</title>
+<!-- Tailwind CSS with essential plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts: Geist -->
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "outline-variant": "#cfc4c5",
+                    "surface-container-high": "#e8e7f1",
+                    "secondary-fixed": "#e1e0ff",
+                    "on-primary-container": "#848484",
+                    "on-tertiary-fixed-variant": "#454748",
+                    "primary": "#000000",
+                    "on-error-container": "#93000a",
+                    "on-primary-fixed": "#1b1b1b",
+                    "inverse-surface": "#2f3038",
+                    "surface-variant": "#e3e1ec",
+                    "on-secondary-container": "#fffbff",
+                    "on-secondary-fixed": "#07006c",
+                    "surface-dim": "#dad9e3",
+                    "on-error": "#ffffff",
+                    "background": "#fbf8ff",
+                    "on-secondary": "#ffffff",
+                    "secondary-fixed-dim": "#c0c1ff",
+                    "on-secondary-fixed-variant": "#2f2ebe",
+                    "inverse-on-surface": "#f1effa",
+                    "tertiary": "#000000",
+                    "surface-container": "#eeedf7",
+                    "secondary": "#4648d4",
+                    "on-primary-fixed-variant": "#474747",
+                    "on-tertiary-container": "#838485",
+                    "error-container": "#ffdad6",
+                    "on-tertiary-fixed": "#1a1c1d",
+                    "secondary-container": "#6063ee",
+                    "inverse-primary": "#c6c6c6",
+                    "on-surface": "#1a1b22",
+                    "primary-fixed": "#e2e2e2",
+                    "surface-container-low": "#f4f2fd",
+                    "surface-container-lowest": "#ffffff",
+                    "tertiary-fixed-dim": "#c6c6c7",
+                    "primary-container": "#1b1b1b",
+                    "on-background": "#1a1b22",
+                    "outline": "#7e7576",
+                    "on-tertiary": "#ffffff",
+                    "on-surface-variant": "#4c4546",
+                    "tertiary-container": "#1a1c1d",
+                    "tertiary-fixed": "#e2e2e3",
+                    "on-primary": "#ffffff",
+                    "primary-fixed-dim": "#c6c6c6",
+                    "surface-tint": "#5e5e5e",
+                    "surface": "#fbf8ff",
+                    "error": "#ba1a1a",
+                    "surface-container-highest": "#e3e1ec",
+                    "surface-bright": "#fbf8ff"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "lg": "24px",
+                    "sm": "8px",
+                    "md": "16px",
+                    "container-max": "1280px",
+                    "auth-form-width": "420px",
+                    "2xl": "64px",
+                    "xs": "4px",
+                    "xl": "40px",
+                    "unit": "4px"
+            },
+            "fontFamily": {
+                    "caption": ["Geist"],
+                    "label-sm": ["Geist"],
+                    "headline-md": ["Geist"],
+                    "display-lg-mobile": ["Geist"],
+                    "display-lg": ["Geist"],
+                    "body-md": ["Geist"],
+                    "body-lg": ["Geist"]
+            },
+            "fontSize": {
+                    "caption": ["12px", {"lineHeight": "16px", "fontWeight": "400"}],
+                    "label-sm": ["14px", {"lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500"}],
+                    "headline-md": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.01em", "fontWeight": "500"}],
+                    "display-lg-mobile": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Geist', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .kinetic-gradient {
+            background: radial-gradient(circle at 0% 0%, #1a1b22 0%, #000000 100%);
+        }
+        @keyframes subtle-drift {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(0.5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        .drift { animation: subtle-drift 8s ease-in-out infinite; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface selection:bg-secondary selection:text-white">
+<main class="min-h-screen flex flex-col md:flex-row">
+<!-- Left Panel: Brand & Immersive Content -->
+<section class="hidden md:flex md:w-1/2 lg:w-3/5 kinetic-gradient p-xl flex-col relative overflow-hidden">
+<!-- Animated Background Asset -->
+<!-- Branding -->
+<div class="relative z-10 flex items-center gap-sm">
+<div class="w-10 h-10 bg-on-primary flex items-center justify-center rounded-lg">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">insights</span>
+</div>
+<span class="font-headline-md text-headline-md font-bold text-on-primary tracking-tight">TaskFlow Pro</span>
+</div>
+<!-- Hero Section -->
+<div class="relative z-10 mt-auto mb-auto max-w-xl">
+<h1 class="font-display-lg text-display-lg text-on-primary mb-md leading-tight">
+                    The Ultimate Project Management Solution
+                </h1>
+<p class="font-body-lg text-body-lg text-on-primary/70 mb-xl max-w-lg">
+                    Stay organized, meet deadlines, and collaborate seamlessly—all in one high-performance executive dashboard.
+                </p>
+<!-- Glassmorphism Product Preview -->
+<div class="glass-panel rounded-xl p-md shadow-2xl relative drift">
+<div class="flex items-center justify-between mb-md">
+<div class="flex gap-xs">
+<div class="w-3 h-3 rounded-full bg-error opacity-50"></div>
+<div class="w-3 h-3 rounded-full bg-secondary-container opacity-50"></div>
+<div class="w-3 h-3 rounded-full bg-on-surface-variant opacity-50"></div>
+</div>
+<div class="h-1.5 w-32 bg-on-primary/10 rounded-full"></div>
+</div>
+<div class="w-full rounded-lg border border-on-primary/10 bg-on-primary/5 p-lg flex items-center justify-center"><img src="https://lh3.googleusercontent.com/aida-public/AB6AXuCkxKTrXvrtEApeSnQypLUiGnRzbQqqlQsWQPCiIvPomDxRHybYf7d0n2MMgE-Nep1AyYb5r-ESpaxKqa4GrG10_T1-5u1HcqI5ilM-Ll9mBc1OhAd3Xn7EKdtYvUsX_YPJcNyc65ERNsMHpmZ6sGLA8dsU8SkFoJdX7V0nYHzPTf5Mm_Hy3Eco9Hd30N7tMrx9yJzsu70O4TYpUQuXdEM9cA34yBl8m6P_L7SoBsX1KjY8Ayc2LIh68ium79Bg1CcQfTPmByfEDFxv" alt="Team Collaboration Illustration" class="w-full h-auto object-contain"></div>
+</div>
+</div>
+<!-- Features List -->
+<div class="relative z-10 mt-auto grid grid-cols-3 gap-lg border-t border-on-primary/10 pt-lg">
+<div class="flex flex-col gap-xs">
+<span class="material-symbols-outlined text-on-primary/50 text-xl" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="font-label-sm text-label-sm text-on-primary">Real-time collaboration</span>
+</div>
+<div class="flex flex-col gap-xs">
+<span class="material-symbols-outlined text-on-primary/50 text-xl" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-label-sm text-label-sm text-on-primary">Executive analytics</span>
+</div>
+<div class="flex flex-col gap-xs">
+<span class="material-symbols-outlined text-on-primary/50 text-xl" style="font-variation-settings: 'FILL' 1;">bolt</span>
+<span class="font-label-sm text-label-sm text-on-primary">Seamless workflows</span>
+</div>
+</div>
+</section>
+<!-- Right Panel: Auth Flow -->
+<section class="flex-1 bg-surface-container-lowest flex flex-col items-center justify-center p-lg">
+<div class="w-full max-w-[420px]">
+<!-- Header -->
+<header class="mb-xl text-center md:text-left">
+<div class="md:hidden flex justify-center mb-lg">
+<span class="font-headline-md text-headline-md font-bold text-primary tracking-tight">TaskFlow Pro</span>
+</div>
+<h2 class="font-display-lg-mobile text-display-lg-mobile text-on-surface mb-xs">Welcome Back!</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                        Don't have an account? <a class="text-secondary font-medium hover:underline" href="#">Create account</a>
+</p>
+</header>
+<!-- Auth Form -->
+<form class="space-y-lg">
+<div class="space-y-sm">
+<label class="font-label-sm text-label-sm text-on-surface-variant block" for="email">Email Address</label>
+<input class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/10 transition-all outline-none" id="email" placeholder="Enter your email address" type="email">
+</div>
+<div class="space-y-sm">
+<div class="flex justify-between items-center">
+<label class="font-label-sm text-label-sm text-on-surface-variant block" for="password">Password</label>
+<a class="font-caption text-caption text-secondary hover:underline" href="#">Forgot your password?</a>
+</div>
+<div class="relative">
+<input class="w-full bg-white border border-outline-variant rounded-lg px-md py-sm font-body-md text-body-md focus:border-secondary focus:ring-2 focus:ring-secondary/10 transition-all outline-none" id="password" placeholder="Enter your password" type="password">
+<button class="absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface" type="button">
+<span class="material-symbols-outlined text-[20px]">visibility_off</span>
+</button>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary py-md rounded-lg font-body-md font-medium hover:bg-on-surface-variant active:scale-[0.98] transition-all" type="submit">
+                        Log in
+                    </button>
+</form>
+<!-- Divider -->
+<!-- Social Logins -->
+<!-- Demo Credentials Card -->
+<div class="mt-2xl border border-secondary/20 bg-secondary/5 rounded-xl p-md">
+<div class="flex items-center gap-sm mb-sm text-secondary">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">info</span>
+<span class="font-label-sm text-label-sm font-bold">Demo Environment</span>
+</div>
+<p class="font-caption text-caption text-on-surface-variant mb-md">
+                        Use the following credentials to explore the platform immediately without registration.
+                    </p>
+<div class="space-y-xs">
+<div class="flex justify-between items-center py-xs border-b border-secondary/10">
+<span class="font-caption text-caption text-on-surface-variant">Email</span>
+<span class="font-caption text-caption font-medium select-all">demo@taskflow.pro</span>
+</div>
+<div class="flex justify-between items-center py-xs">
+<span class="font-caption text-caption text-on-surface-variant">Password</span>
+<span class="font-caption text-caption font-medium select-all">welcome2024</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Links -->
+<footer class="mt-auto pt-2xl w-full max-w-[420px] flex flex-col md:flex-row justify-between items-center gap-sm opacity-60">
+<span class="font-caption text-caption">© 2024 TaskFlow Pro.</span>
+<div class="flex gap-md">
+<a class="font-caption text-caption hover:text-primary" href="#">Privacy Policy</a>
+<a class="font-caption text-caption hover:text-primary" href="#">Terms of Service</a>
+</div>
+</footer>
+</section>
+</main>
+<script>
+        // Password toggle logic
+        document.querySelector('button[type="button"]').addEventListener('click', function() {
+            const input = document.getElementById('password');
+            const icon = this.querySelector('span');
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.textContent = 'visibility';
+            } else {
+                input.type = 'password';
+                icon.textContent = 'visibility_off';
+            }
+        });
+
+        // Simple button interaction
+        const buttons = document.querySelectorAll('button');
+        buttons.forEach(btn => {
+            btn.addEventListener('mousedown', () => btn.classList.add('scale-95'));
+            btn.addEventListener('mouseup', () => btn.classList.remove('scale-95'));
+            btn.addEventListener('mouseleave', () => btn.classList.remove('scale-95'));
+        });
+    </script>
+
+
+</body></html>

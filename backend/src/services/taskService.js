@@ -28,6 +28,10 @@ async function getAllTasks(filters = {}, userId) {
     where.status = filters.status;
   }
 
+  if (filters.priority) {
+    where.priority = filters.priority;
+  }
+
   if (filters.search) {
     where.title = {
       [Op.substring]: filters.search
@@ -57,13 +61,13 @@ async function getAllTasks(filters = {}, userId) {
 }
 
 /**
- * Updates the status of a specific task.
+ * Updates the fields of a specific task (supports full edits and status-only updates).
  * @param {number|string} taskId - The primary key ID of the task.
- * @param {string} status - The new status value.
+ * @param {Object|string} updateData - The new status value string or an object containing fields to update.
  * @param {number} userId - The owner of the task.
  * @returns {Promise<Object>} The updated task instance.
  */
-async function updateTaskStatus(taskId, status, userId) {
+async function updateTaskStatus(taskId, updateData, userId) {
   const task = await Task.findOne({ where: { id: taskId, userId } });
   if (!task) {
     const error = new Error('Task not found');
@@ -71,7 +75,18 @@ async function updateTaskStatus(taskId, status, userId) {
     throw error;
   }
 
-  task.status = status;
+  if (typeof updateData === 'string') {
+    task.status = updateData;
+  } else if (updateData && typeof updateData === 'object') {
+    if (updateData.title !== undefined) task.title = updateData.title;
+    if (updateData.description !== undefined) task.description = updateData.description;
+    if (updateData.status !== undefined) task.status = updateData.status;
+    if (updateData.priority !== undefined) task.priority = updateData.priority;
+    if (updateData.dueDate !== undefined) {
+      task.dueDate = updateData.dueDate === '' ? null : updateData.dueDate;
+    }
+  }
+
   await task.save();
   return task;
 }

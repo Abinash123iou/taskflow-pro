@@ -49,6 +49,25 @@ const Task = sequelize.define('Task', {
         msg: 'Status must be Pending, In Progress, or Completed'
       }
     }
+  },
+  priority: {
+    type: DataTypes.ENUM('Low', 'Medium', 'High'),
+    allowNull: false,
+    defaultValue: 'Medium',
+    validate: {
+      isIn: {
+        args: [['Low', 'Medium', 'High']],
+        msg: 'Priority must be Low, Medium, or High'
+      }
+    }
+  },
+  dueDate: {
+    type: DataTypes.DATEONLY,
+    allowNull: true,
+    field: 'due_date',
+    validate: {
+      isDate: { msg: 'Due Date must be a valid date' }
+    }
   }
 }, {
   tableName: 'tasks',
