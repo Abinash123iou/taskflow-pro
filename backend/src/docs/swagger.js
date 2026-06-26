@@ -96,6 +96,19 @@ const options = {
             message: { type: 'string', example: 'Resource not found' },
           },
         },
+        Notification: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer', example: 1 },
+            userId: { type: 'integer', example: 1 },
+            title: { type: 'string', example: 'Task Overdue' },
+            message: { type: 'string', example: 'Task "Design database" is overdue (due date was 2026-06-25).' },
+            type: { type: 'string', enum: ['Info', 'Success', 'Warning', 'Error'], example: 'Warning' },
+            isRead: { type: 'boolean', example: false },
+            createdAt: { type: 'string', format: 'date-time' },
+            updatedAt: { type: 'string', format: 'date-time' },
+          },
+        },
       },
     },
     paths: {
@@ -397,7 +410,7 @@ const options = {
       '/tasks/stats': {
         get: {
           summary: 'Get dashboard statistics',
-          description: 'Retrieve task status counts belonging to the authenticated user.',
+          description: 'Retrieve task status counts, overdue count, and trends data belonging to the authenticated user.',
           security: [{ BearerAuth: [] }],
           responses: {
             200: {
@@ -416,6 +429,28 @@ const options = {
                           pendingTasks: { type: 'integer', example: 4 },
                           inProgressTasks: { type: 'integer', example: 3 },
                           completedTasks: { type: 'integer', example: 3 },
+                          overdueTasks: { type: 'integer', example: 1 },
+                          weeklyData: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                name: { type: 'string', example: 'MON' },
+                                Completed: { type: 'integer', example: 2 },
+                                Projected: { type: 'integer', example: 1 }
+                              }
+                            }
+                          },
+                          monthlyData: {
+                            type: 'array',
+                            items: {
+                              type: 'object',
+                              properties: {
+                                name: { type: 'string', example: 'JUN' },
+                                Productivity: { type: 'integer', example: 75 }
+                              }
+                            }
+                          }
                         },
                       },
                     },
@@ -425,6 +460,131 @@ const options = {
             },
           },
         },
+      },
+      '/notifications': {
+        get: {
+          summary: 'Retrieve user notifications',
+          description: 'Fetch all notifications for the authenticated user.',
+          security: [{ BearerAuth: [] }],
+          responses: {
+            200: {
+              description: 'Notifications retrieved successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      data: {
+                        type: 'array',
+                        items: { $ref: '#/components/schemas/Notification' }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            401: {
+              description: 'Access denied. No token or invalid token.',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' }
+                }
+              }
+            }
+          }
+        }
+      },
+      '/notifications/{id}/read': {
+        put: {
+          summary: 'Mark a single notification as read',
+          description: 'Mark a specific notification as read by its ID.',
+          security: [{ BearerAuth: [] }],
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'integer' } }
+          ],
+          responses: {
+            200: {
+              description: 'Notification marked as read successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      message: { type: 'string', example: 'Notification marked as read' }
+                    }
+                  }
+                }
+              }
+            },
+            404: {
+              description: 'Notification not found or access denied',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' }
+                }
+              }
+            }
+          }
+        }
+      },
+      '/notifications/read-all': {
+        put: {
+          summary: 'Mark all notifications as read',
+          description: 'Mark all notifications of the authenticated user as read.',
+          security: [{ BearerAuth: [] }],
+          responses: {
+            200: {
+              description: 'All notifications marked as read successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      message: { type: 'string', example: 'All notifications marked as read' }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      '/notifications/{id}': {
+        delete: {
+          summary: 'Delete a notification',
+          description: 'Delete a specific notification by its ID.',
+          security: [{ BearerAuth: [] }],
+          parameters: [
+            { name: 'id', in: 'path', required: true, schema: { type: 'integer' } }
+          ],
+          responses: {
+            200: {
+              description: 'Notification deleted successfully',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'object',
+                    properties: {
+                      success: { type: 'boolean', example: true },
+                      message: { type: 'string', example: 'Notification deleted' }
+                    }
+                  }
+                }
+              }
+            },
+            404: {
+              description: 'Notification not found or access denied',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ErrorResponse' }
+                }
+              }
+            }
+          }
+        }
       },
     },
   },
