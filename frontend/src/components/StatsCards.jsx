@@ -1,4 +1,8 @@
 import React from 'react';
+import totalTaskIcon from '../assets/total task.png';
+import pendingIcon from '../assets/pending.png';
+import inProgressIcon from '../assets/in-progress.png';
+import completedIcon from '../assets/completed.png';
 
 const StatsCards = ({ stats = { totalTasks: 0, pendingTasks: 0, inProgressTasks: 0, completedTasks: 0 } }) => {
   const total = stats.totalTasks || 0;
@@ -16,12 +20,10 @@ const StatsCards = ({ stats = { totalTasks: 0, pendingTasks: 0, inProgressTasks:
     <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
       
       {/* Metric 1: Total Tasks */}
-      <div className="bg-surface border border-outline-variant p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow group">
+      <div className="bg-surface-container-lowest border border-outline-variant p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow group">
         <div className="flex justify-between items-start mb-2">
           <span className="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant">Total Tasks</span>
-          <span className="material-symbols-outlined text-outline group-hover:text-primary transition-colors">
-            assignment
-          </span>
+          <img src={totalTaskIcon} alt="Total Tasks" className="w-8 h-8 object-contain" />
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold">{total}</span>
@@ -36,12 +38,10 @@ const StatsCards = ({ stats = { totalTasks: 0, pendingTasks: 0, inProgressTasks:
       </div>
 
       {/* Metric 2: Pending */}
-      <div className="bg-surface border border-outline-variant p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow group">
+      <div className="bg-surface-container-lowest border border-outline-variant p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow group">
         <div className="flex justify-between items-start mb-2">
           <span className="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant">Pending</span>
-          <span className="material-symbols-outlined text-outline group-hover:text-tertiary transition-colors">
-            pending_actions
-          </span>
+          <img src={pendingIcon} alt="Pending" className="w-8 h-8 object-contain" />
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold">{pending}</span>
@@ -56,12 +56,10 @@ const StatsCards = ({ stats = { totalTasks: 0, pendingTasks: 0, inProgressTasks:
       </div>
 
       {/* Metric 3: In Progress */}
-      <div className="bg-surface border border-outline-variant p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow group">
+      <div className="bg-surface-container-lowest border border-outline-variant p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow group">
         <div className="flex justify-between items-start mb-2">
           <span className="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant">In Progress</span>
-          <span className="material-symbols-outlined text-outline group-hover:text-secondary transition-colors">
-            sync
-          </span>
+          <img src={inProgressIcon} alt="In Progress" className="w-8 h-8 object-contain" />
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold">{inProgress}</span>
@@ -76,12 +74,10 @@ const StatsCards = ({ stats = { totalTasks: 0, pendingTasks: 0, inProgressTasks:
       </div>
 
       {/* Metric 4: Completed */}
-      <div className="bg-surface border border-outline-variant p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow group">
+      <div className="bg-surface-container-lowest border border-outline-variant p-4 rounded-xl shadow-sm hover:shadow-md transition-shadow group">
         <div className="flex justify-between items-start mb-2">
           <span className="text-[11px] font-bold tracking-wider uppercase text-on-surface-variant">Completed</span>
-          <span className="material-symbols-outlined text-outline group-hover:text-green-600 transition-colors">
-            check_circle
-          </span>
+          <img src={completedIcon} alt="Completed" className="w-8 h-8 object-contain" />
         </div>
         <div className="flex items-baseline gap-2">
           <span className="text-3xl font-bold">{completed}</span>

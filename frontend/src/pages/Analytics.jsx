@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import totalTaskIcon from '../assets/total task.png';
+import pendingIcon from '../assets/pending.png';
+import completedIcon from '../assets/completed.png';
 import {
   ResponsiveContainer,
   AreaChart,
@@ -18,13 +21,21 @@ import {
 
 const Analytics = () => {
   const { token } = useAuth();
-  const [stats, setStats] = useState({ totalTasks: 0, pendingTasks: 0, inProgressTasks: 0, completedTasks: 0 });
+  const [stats, setStats] = useState({
+    totalTasks: 0,
+    pendingTasks: 0,
+    inProgressTasks: 0,
+    completedTasks: 0,
+    overdueTasks: 0,
+    weeklyData: [],
+    monthlyData: []
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/tasks/stats', {
+        const response = await axios.get('/api/tasks/stats', {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (response.data.success) {
@@ -40,32 +51,36 @@ const Analytics = () => {
   }, [token]);
 
   // Data 1: Weekly Completion Trend (Completed & Projected)
-  const weeklyData = [
-    { name: 'MON', Completed: 20, Projected: 30 },
-    { name: 'TUE', Completed: 40, Projected: 35 },
-    { name: 'WED', Completed: 35, Projected: 40 },
-    { name: 'THU', Completed: 55, Projected: 45 },
-    { name: 'FRI', Completed: 45, Projected: 50 },
-    { name: 'SAT', Completed: 65, Projected: 55 },
-    { name: 'SUN', Completed: 60, Projected: 60 }
-  ];
+  const weeklyData = stats.weeklyData && stats.weeklyData.length > 0
+    ? stats.weeklyData
+    : [
+        { name: 'MON', Completed: 0, Projected: 0 },
+        { name: 'TUE', Completed: 0, Projected: 0 },
+        { name: 'WED', Completed: 0, Projected: 0 },
+        { name: 'THU', Completed: 0, Projected: 0 },
+        { name: 'FRI', Completed: 0, Projected: 0 },
+        { name: 'SAT', Completed: 0, Projected: 0 },
+        { name: 'SUN', Completed: 0, Projected: 0 }
+      ];
 
   // Data 2: Monthly Productivity Trend
-  const monthlyData = [
-    { name: 'JAN', Productivity: 42 },
-    { name: 'FEB', Productivity: 65 },
-    { name: 'MAR', Productivity: 55 },
-    { name: 'APR', Productivity: 92 },
-    { name: 'MAY', Productivity: 75 },
-    { name: 'JUN', Productivity: 82 }
-  ];
+  const monthlyData = stats.monthlyData && stats.monthlyData.length > 0
+    ? stats.monthlyData
+    : [
+        { name: 'JAN', Productivity: 0 },
+        { name: 'FEB', Productivity: 0 },
+        { name: 'MAR', Productivity: 0 },
+        { name: 'APR', Productivity: 0 },
+        { name: 'MAY', Productivity: 0 },
+        { name: 'JUN', Productivity: 0 }
+      ];
 
   // Data 3: Task Distribution Donut Chart
-  const total = stats.totalTasks || 100; // fallback for display
-  const completedCount = stats.completedTasks || 60;
-  const inProgressCount = stats.inProgressTasks || 25;
-  const pendingCount = stats.pendingTasks || 10;
-  const overdueCount = Math.round(total * 0.05); // 5% overdue representation
+  const total = stats.totalTasks || 0;
+  const completedCount = stats.completedTasks || 0;
+  const inProgressCount = stats.inProgressTasks || 0;
+  const pendingCount = stats.pendingTasks || 0;
+  const overdueCount = stats.overdueTasks || 0;
 
   const distributionData = [
     { name: 'Completed', value: completedCount, color: '#004ac6' },
@@ -94,35 +109,23 @@ const Analytics = () => {
 
   return (
     <main className="max-w-container-max mx-auto px-8 py-8 pt-24 space-y-8">
-      
+
       {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-on-surface">Analytics Overview</h1>
-          <p className="text-body-sm text-on-surface-variant mt-1">
-            Real-time performance tracking and resource optimization.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button className="bg-surface-container-high text-on-surface px-4 py-2.5 rounded-lg font-bold text-xs tracking-wider uppercase flex items-center gap-2 hover:bg-surface-variant transition-all cursor-pointer">
-            <span className="material-symbols-outlined text-[18px]">calendar_today</span>
-            Last 30 Days
-          </button>
-          <button className="bg-primary text-on-primary px-4 py-2.5 rounded-lg font-bold text-xs tracking-wider uppercase flex items-center gap-2 hover:opacity-90 active:scale-95 transition-all cursor-pointer">
-            <span className="material-symbols-outlined text-[18px]">download</span>
-            Export CSV
-          </button>
-        </div>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight text-on-surface">Analytics Overview</h1>
+        <p className="text-body-sm text-on-surface-variant mt-1">
+          Real-time performance tracking and resource optimization.
+        </p>
       </div>
 
       {/* KPI Cards (Stripe-inspired) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
         {/* Card 1 */}
         <div className="bg-surface-container-lowest border border-outline-variant p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start mb-4">
             <span className="text-[10px] font-bold tracking-wider uppercase text-on-surface-variant">Total Tasks</span>
-            <span className="material-symbols-outlined text-primary">assignment</span>
+            <img src={totalTaskIcon} alt="Total Tasks" className="w-8 h-8 object-contain" />
           </div>
           <div className="text-3xl font-bold text-on-surface">
             {loading ? '...' : stats.totalTasks}
@@ -137,7 +140,7 @@ const Analytics = () => {
         <div className="bg-surface-container-lowest border border-outline-variant p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start mb-4">
             <span className="text-[10px] font-bold tracking-wider uppercase text-on-surface-variant">Completion Rate</span>
-            <span className="material-symbols-outlined text-primary">check_circle</span>
+            <img src={completedIcon} alt="Completion Rate" className="w-8 h-8 object-contain" />
           </div>
           <div className="text-3xl font-bold text-on-surface">
             {loading ? '...' : stats.totalTasks > 0 ? `${Math.round((stats.completedTasks / stats.totalTasks) * 1000) / 10}%` : '0%'}
@@ -152,7 +155,7 @@ const Analytics = () => {
         <div className="bg-surface-container-lowest border border-outline-variant p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow">
           <div className="flex justify-between items-start mb-4">
             <span className="text-[10px] font-bold tracking-wider uppercase text-on-surface-variant">Pending Tasks</span>
-            <span className="material-symbols-outlined text-primary">pending_actions</span>
+            <img src={pendingIcon} alt="Pending Tasks" className="w-8 h-8 object-contain" />
           </div>
           <div className="text-3xl font-bold text-on-surface">
             {loading ? '...' : stats.pendingTasks}
@@ -163,27 +166,14 @@ const Analytics = () => {
           </div>
         </div>
 
-        {/* Card 4 */}
-        <div className="bg-surface-container-lowest border border-outline-variant p-5 rounded-xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-l-primary">
-          <div className="flex justify-between items-start mb-4">
-            <span className="text-[10px] font-bold tracking-wider uppercase text-on-surface-variant">Productivity Score</span>
-            <span className="material-symbols-outlined text-primary">bolt</span>
-          </div>
-          <div className="text-3xl font-bold text-on-surface">92</div>
-          <div className="mt-2 flex items-center gap-1 text-[11px] text-tertiary font-bold">
-            <span className="material-symbols-outlined text-[14px]">stars</span>
-            <span>Top 5% of organizations</span>
-          </div>
-        </div>
-
       </div>
 
       {/* Main Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
         {/* Left Grid Content (8/12) */}
         <div className="lg:col-span-8 space-y-6">
-          
+
           {/* Weekly Completion Trend */}
           <div className="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl">
             <div className="flex justify-between items-center mb-6">
@@ -197,14 +187,14 @@ const Analytics = () => {
                 </div>
               </div>
             </div>
-            
+
             <div className="h-64 w-full bg-surface-container-low rounded-lg p-2">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={weeklyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorCompleted" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#004ac6" stopOpacity={0.2}/>
-                      <stop offset="95%" stopColor="#004ac6" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#004ac6" stopOpacity={0.2} />
+                      <stop offset="95%" stopColor="#004ac6" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-outline-variant)" opacity={0.3} />
@@ -230,9 +220,9 @@ const Analytics = () => {
                   <Tooltip cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }} content={<CustomTooltip />} />
                   <Bar dataKey="Productivity" fill="#b7c8e1" radius={[4, 4, 0, 0]}>
                     {monthlyData.map((entry, index) => (
-                      <Cell 
-                        key={`cell-${index}`} 
-                        fill={index === 3 ? '#004ac6' : '#b7c8e1'} 
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={index === 3 ? '#004ac6' : '#b7c8e1'}
                         className="hover:opacity-85 transition-opacity cursor-pointer"
                       />
                     ))}
@@ -246,7 +236,7 @@ const Analytics = () => {
 
         {/* Right Grid Content (4/12) */}
         <div className="lg:col-span-4 space-y-6">
-          
+
           {/* Task Distribution (Donut Chart) */}
           <div className="bg-surface-container-lowest border border-outline-variant p-6 rounded-xl">
             <h3 className="text-base font-bold text-on-surface mb-6">Task Distribution</h3>
@@ -289,140 +279,8 @@ const Analytics = () => {
             </div>
           </div>
 
-          {/* Smart Insights Panel */}
-          <div className="bg-surface-container-high p-6 rounded-xl border border-outline-variant relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <span className="material-symbols-outlined text-[80px] select-none">lightbulb</span>
-            </div>
-            
-            <h3 className="text-base font-bold text-on-surface mb-4 flex items-center gap-2">
-              <span className="material-symbols-outlined text-tertiary">psychology_alt</span>
-              Smart Insights
-            </h3>
-            
-            <div className="space-y-4">
-              <div className="bg-surface-container-lowest p-3 rounded-lg border border-outline-variant/30">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-[9px] font-bold tracking-wider uppercase text-on-surface-variant">Avg. Completion Time</span>
-                  <span className="text-xs font-mono font-bold text-primary">1.4 days</span>
-                </div>
-                <div className="w-full bg-surface-container-low h-1 rounded-full overflow-hidden">
-                  <div className="bg-primary h-full w-[70%]"></div>
-                </div>
-              </div>
-
-              <div className="bg-surface-container-lowest p-3 rounded-lg border border-outline-variant/30">
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-[9px] font-bold tracking-wider uppercase text-on-surface-variant">On-Time Delivery</span>
-                  <span className="text-xs font-mono font-bold text-primary">91%</span>
-                </div>
-                <div className="w-full bg-surface-container-low h-1 rounded-full overflow-hidden">
-                  <div className="bg-primary h-full w-[91%]"></div>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <p className="text-xs text-on-surface mb-4 leading-relaxed">
-                  Your team completed <span className="text-tertiary font-bold">12% more tasks</span> this month compared to the previous period. Velocity is trending upwards.
-                </p>
-                
-                <div className="bg-primary/5 border border-primary/20 p-4 rounded-lg">
-                  <div className="flex gap-3">
-                    <span className="material-symbols-outlined text-primary text-[20px]">info</span>
-                    <div className="flex-1">
-                      <p className="text-[9px] font-bold tracking-wider uppercase text-primary mb-1">RECOMMENDATION</p>
-                      <p className="text-xs text-on-surface leading-snug">
-                        Consider reallocating resources to the <strong className="text-primary">'Architecture'</strong> project to meet upcoming deadlines.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-      </div>
-
-      {/* Resource Performance Table */}
-      <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-        <div className="p-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
-          <h3 className="text-base font-bold text-on-surface">Resource Performance</h3>
-          <button className="text-primary font-bold text-xs tracking-wider uppercase hover:underline cursor-pointer">
-            View All Members
-          </button>
-        </div>
-        
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-surface-container-low border-b border-outline-variant">
-                <th className="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Member</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider text-center">Tasks Done</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Efficiency</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Current Load</th>
-                <th className="px-6 py-4 text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Trend</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-outline-variant bg-surface">
-              <tr className="hover:bg-surface-container-low transition-colors group">
-                <td className="px-6 py-4 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container text-xs">
-                    AL
-                  </div>
-                  <div>
-                    <div className="font-bold text-xs text-on-surface">Alex Lindholm</div>
-                    <div className="text-[10px] text-on-surface-variant">Senior Architect</div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-center font-mono text-xs font-semibold">142</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono font-semibold">98%</span>
-                    <div className="w-16 h-1 bg-surface-container-high rounded-full overflow-hidden">
-                      <div className="bg-primary h-full w-[98%]"></div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase">OPTIMAL</span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="material-symbols-outlined text-tertiary">trending_up</span>
-                </td>
-              </tr>
-              <tr className="hover:bg-surface-container-low transition-colors">
-                <td className="px-6 py-4 flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-tertiary-fixed-dim flex items-center justify-center font-bold text-on-tertiary-fixed-variant text-xs">
-                    SC
-                  </div>
-                  <div>
-                    <div className="font-bold text-xs text-on-surface">Sarah Chen</div>
-                    <div className="text-[10px] text-on-surface-variant">Lead Developer</div>
-                  </div>
-                </td>
-                <td className="px-6 py-4 text-center font-mono text-xs font-semibold">98</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-mono font-semibold">89%</span>
-                    <div className="w-16 h-1 bg-surface-container-high rounded-full overflow-hidden">
-                      <div className="bg-primary h-full w-[89%]"></div>
-                    </div>
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="bg-tertiary/10 text-tertiary px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider uppercase">HEAVY</span>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="material-symbols-outlined text-outline">horizontal_rule</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       </div>
-
     </main>
   );
 };

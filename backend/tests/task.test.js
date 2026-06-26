@@ -158,12 +158,15 @@ describe('Task Management API Endpoints', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('success', true);
-      expect(response.body.data).toEqual({
+      expect(response.body.data).toMatchObject({
         totalTasks: 4,
         pendingTasks: 1,
         inProgressTasks: 1,
-        completedTasks: 2
+        completedTasks: 2,
+        overdueTasks: 0
       });
+      expect(response.body.data).toHaveProperty('weeklyData');
+      expect(response.body.data).toHaveProperty('monthlyData');
     });
   });
 

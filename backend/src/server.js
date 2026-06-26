@@ -3,6 +3,7 @@ const app = require('./app');
 const { sequelize, authenticateDatabase } = require('./config/db');
 const User = require('./models/User');
 const Task = require('./models/Task');
+const Notification = require('./models/Notification');
 const bcrypt = require('bcryptjs');
 
 const PORT = process.env.PORT || 5000;
@@ -67,6 +68,34 @@ async function seedDatabase() {
         }
       ]);
       console.log('Seeded initial tasks successfully.');
+    }
+
+    const notifCount = await Notification.count({ where: { userId: user.id } });
+    if (notifCount === 0) {
+      await Notification.bulkCreate([
+        {
+          userId: user.id,
+          title: 'Welcome to TaskFlow Pro',
+          message: 'Explore your dashboard, create tasks, and manage priority workflows.',
+          type: 'Info',
+          isRead: false
+        },
+        {
+          userId: user.id,
+          title: 'Project Setup Complete',
+          message: 'All workspace modules have been synchronized successfully.',
+          type: 'Success',
+          isRead: false
+        },
+        {
+          userId: user.id,
+          title: 'Task Nearing Deadline',
+          message: 'Your high-priority task "Onboarding Flow UX Testing" is due in 3 days.',
+          type: 'Warning',
+          isRead: false
+        }
+      ]);
+      console.log('Seeded initial notifications successfully.');
     }
   } catch (err) {
     console.error('Error seeding database:', err.message);

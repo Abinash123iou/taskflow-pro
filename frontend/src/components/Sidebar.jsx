@@ -38,13 +38,6 @@ const Sidebar = ({ activeFilter, setActiveFilter, activePriority, setActivePrior
             <span className="font-semibold text-xs tracking-wider uppercase">My Tasks</span>
           </a>
 
-          <a 
-            href="#"
-            className="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-high transition-transform hover:translate-x-1 rounded-lg"
-          >
-            <span className="material-symbols-outlined text-[20px]">inbox</span>
-            <span className="font-semibold text-xs tracking-wider uppercase">Inbox</span>
-          </a>
 
           <a 
             href="#"
@@ -72,13 +65,6 @@ const Sidebar = ({ activeFilter, setActiveFilter, activePriority, setActivePrior
             <span className="font-semibold text-xs tracking-wider uppercase">Completed</span>
           </a>
 
-          <a 
-            href="#"
-            className="flex items-center gap-3 px-3 py-2 text-secondary hover:bg-surface-container-high transition-transform hover:translate-x-1 rounded-lg"
-          >
-            <span className="material-symbols-outlined text-[20px]">archive</span>
-            <span className="font-semibold text-xs tracking-wider uppercase">Archive</span>
-          </a>
         </div>
 
         <div className="mt-auto flex flex-col gap-1 border-t border-outline-variant pt-4">
@@ -98,9 +84,6 @@ const Sidebar = ({ activeFilter, setActiveFilter, activePriority, setActivePrior
             <span className="font-semibold text-xs tracking-wider uppercase">Logout</span>
           </button>
 
-          <button className="mt-4 w-full bg-secondary text-on-secondary px-4 py-2.5 rounded-lg font-semibold text-xs tracking-wider uppercase hover:bg-on-surface-variant transition-all active:scale-95 cursor-pointer">
-            Upgrade Plan
-          </button>
         </div>
       </aside>
 

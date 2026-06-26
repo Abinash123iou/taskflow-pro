@@ -14,14 +14,11 @@ const DashboardLayout = ({ children }) => {
       <Navbar />
 
       <div className="flex">
-        {/* Render Sidebar on the tasks page */}
-        {isTasksPage && <Sidebar />}
-
         {/* Content canvas */}
         <div 
           className={`flex-grow transition-all duration-200 ${
             isTasksPage 
-              ? 'lg:pl-64 pb-20 lg:pb-0' // Add padding on mobile to account for the bottom nav bar
+              ? 'pb-20 lg:pb-0' // Add padding on mobile to account for the bottom nav bar
               : ''
           }`}
         >

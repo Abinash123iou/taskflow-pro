@@ -69,12 +69,12 @@ const StatsCards = ({
       {cards.map((card, idx) => (
         <div
           key={idx}
-          className={`bg-white rounded-xl border border-slate-200/80 p-6 shadow-sm hover:shadow-md hover:border-slate-300 transition-all duration-200 flex items-center justify-between cursor-default`}
+          className="bg-surface-container-lowest rounded-xl border border-outline-variant p-6 shadow-sm hover:shadow-md transition-all duration-200 flex items-center justify-between cursor-default"
         >
           {/* Card Text Content */}
           <div className="space-y-1">
-            <p className="text-sm font-medium text-slate-500 tracking-wide">{card.title}</p>
-            <p className="text-3xl font-bold text-slate-900 tracking-tight">{card.value}</p>
+            <p className="text-sm font-medium text-on-surface-variant tracking-wide">{card.title}</p>
+            <p className="text-3xl font-bold text-on-surface tracking-tight">{card.value}</p>
           </div>
 
           {/* Card Icon Container */}

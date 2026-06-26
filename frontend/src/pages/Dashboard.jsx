@@ -16,7 +16,6 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setError('');
-      
       const config = {
         headers: {
           Authorization: `Bearer ${token}`
@@ -24,8 +23,8 @@ const Dashboard = () => {
       };
 
       const [statsRes, tasksRes] = await Promise.all([
-        axios.get('http://localhost:5000/tasks/stats', config),
-        axios.get('http://localhost:5000/tasks?limit=5', config)
+        axios.get('/api/tasks/stats', config),
+        axios.get('/api/tasks?limit=5', config)
       ]);
 
       if (statsRes.data.success) {
@@ -93,17 +92,17 @@ const Dashboard = () => {
             Track progress, manage tasks, and improve productivity.
           </p>
         </div>
-        
+
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={() => navigate('/tasks')}
             className="px-5 py-2 border border-outline-variant text-on-surface hover:bg-surface-container-low transition-all font-semibold rounded-lg flex items-center gap-2 text-xs tracking-wider uppercase cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">list</span>
             All Tasks
           </button>
-          
-          <button 
+
+          <button
             onClick={fetchDashboardData}
             className="px-5 py-2 border border-outline-variant text-on-surface hover:bg-surface-container-low transition-all font-semibold rounded-lg flex items-center gap-2 text-xs tracking-wider uppercase cursor-pointer"
           >
@@ -111,9 +110,9 @@ const Dashboard = () => {
             Refresh
           </button>
 
-          <button 
+          <button
             onClick={() => navigate('/tasks?create=true')}
-            className="px-5 py-2 bg-primary text-on-primary hover:bg-primary-container transition-all font-semibold rounded-lg shadow-md flex items-center gap-2 text-xs tracking-wider uppercase cursor-pointer"
+            className="px-5 py-2 bg-primary hover:bg-primary-hover active:bg-primary-active disabled:bg-primary-disabled text-on-primary transition-all font-semibold rounded-lg shadow-md flex items-center gap-2 text-xs tracking-wider uppercase cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">add</span>
             Create Task
@@ -134,14 +133,14 @@ const Dashboard = () => {
 
       {/* Main Grid: Recent Tasks */}
       <div className="w-full">
-        
+
         {/* Left Column: Recent Tasks Table */}
         <section className="w-full space-y-4">
           <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-sm">
-            
-            <div className="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
+
+            <div className="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface">
               <h2 className="text-lg font-bold text-on-surface">Recent Tasks</h2>
-              <button 
+              <button
                 onClick={() => navigate('/tasks')}
                 className="text-primary font-bold hover:underline text-xs tracking-wider uppercase cursor-pointer"
               >
@@ -172,8 +171,8 @@ const Dashboard = () => {
                   </thead>
                   <tbody className="divide-y divide-outline-variant bg-surface">
                     {recentTasks.map((task) => (
-                      <tr 
-                        key={task.id} 
+                      <tr
+                        key={task.id}
                         onClick={() => navigate(`/tasks?edit=${task.id}`)}
                         className="hover:bg-surface-container transition-colors cursor-pointer group"
                       >

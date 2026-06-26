@@ -72,7 +72,7 @@ const TaskModal = ({ isOpen, onClose, onSave, onDelete, task, mode = 'create' })
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
-      <div className="w-full max-w-lg bg-surface border border-outline-variant rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-lg bg-surface-container-lowest border border-outline-variant rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         
         {/* Header */}
         <header className="px-6 py-4 border-b border-outline-variant flex justify-between items-center bg-surface-container-lowest">
@@ -110,7 +110,7 @@ const TaskModal = ({ isOpen, onClose, onSave, onDelete, task, mode = 'create' })
             <input 
               id="task-title"
               type="text"
-              className="w-full bg-white dark:bg-surface-container border border-outline-variant rounded-lg px-4 py-2 text-body-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all"
+              className="w-full bg-white dark:bg-surface border border-outline-variant rounded-lg px-4 py-2 text-body-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all"
               placeholder="e.g. Refactor authentication layout"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -126,7 +126,7 @@ const TaskModal = ({ isOpen, onClose, onSave, onDelete, task, mode = 'create' })
             <textarea 
               id="task-desc"
               rows="4"
-              className="w-full bg-white dark:bg-surface-container border border-outline-variant rounded-lg px-4 py-2 text-body-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all resize-none"
+              className="w-full bg-white dark:bg-surface border border-outline-variant rounded-lg px-4 py-2 text-body-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all resize-none"
               placeholder="Provide a detailed description of the task (min 20 characters)..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
@@ -144,7 +144,7 @@ const TaskModal = ({ isOpen, onClose, onSave, onDelete, task, mode = 'create' })
               <div className="relative">
                 <select 
                   id="task-status"
-                  className="w-full appearance-none bg-white dark:bg-surface-container border border-outline-variant rounded-lg pl-4 pr-10 py-2 text-body-sm text-on-surface focus:border-primary outline-none cursor-pointer"
+                  className="w-full appearance-none bg-white dark:bg-surface border border-outline-variant rounded-lg pl-4 pr-10 py-2 text-body-sm text-on-surface focus:border-primary outline-none cursor-pointer"
                   value={status}
                   onChange={(e) => setStatus(e.target.value)}
                 >
@@ -166,7 +166,7 @@ const TaskModal = ({ isOpen, onClose, onSave, onDelete, task, mode = 'create' })
               <div className="relative">
                 <select 
                   id="task-priority"
-                  className="w-full appearance-none bg-white dark:bg-surface-container border border-outline-variant rounded-lg pl-4 pr-10 py-2 text-body-sm text-on-surface focus:border-primary outline-none cursor-pointer"
+                  className="w-full appearance-none bg-white dark:bg-surface border border-outline-variant rounded-lg pl-4 pr-10 py-2 text-body-sm text-on-surface focus:border-primary outline-none cursor-pointer"
                   value={priority}
                   onChange={(e) => setPriority(e.target.value)}
                 >
@@ -188,7 +188,7 @@ const TaskModal = ({ isOpen, onClose, onSave, onDelete, task, mode = 'create' })
               <input 
                 id="task-date"
                 type="date"
-                className="w-full bg-white dark:bg-surface-container border border-outline-variant rounded-lg px-4 py-2 text-body-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all"
+                className="w-full bg-white dark:bg-surface border border-outline-variant rounded-lg px-4 py-2 text-body-sm text-on-surface focus:border-primary focus:ring-2 focus:ring-primary/10 outline-none transition-all"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
               />
@@ -228,7 +228,7 @@ const TaskModal = ({ isOpen, onClose, onSave, onDelete, task, mode = 'create' })
               type="submit"
               onClick={handleSubmit}
               disabled={loading}
-              className="px-5 py-2 text-xs font-bold uppercase tracking-wider bg-primary text-on-primary hover:bg-primary-container disabled:opacity-50 rounded-lg flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
+              className="px-5 py-2 text-xs font-bold uppercase tracking-wider bg-primary hover:bg-primary-hover active:bg-primary-active disabled:bg-primary-disabled text-on-primary rounded-lg flex items-center gap-1.5 transition-all active:scale-95 cursor-pointer"
             >
               {loading ? (
                 <div className="h-4 w-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></div>

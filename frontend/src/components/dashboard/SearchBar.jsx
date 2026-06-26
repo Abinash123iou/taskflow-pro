@@ -44,7 +44,7 @@ const SearchBar = ({
         value={searchTerm}
         onChange={(e) => setSearchTerm && setSearchTerm(e.target.value)}
         placeholder="Search tasks by title..."
-        className="block w-full pl-10 pr-10 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-lg text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 focus:bg-white hover:border-slate-300 transition-all duration-200"
+        className="block w-full pl-10 pr-10 py-2.5 text-sm bg-slate-50 dark:bg-surface-container-low border border-slate-200 dark:border-outline-variant rounded-lg text-slate-900 dark:text-on-surface placeholder-slate-400 dark:placeholder-on-surface-variant/50 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary focus:bg-white dark:focus:bg-surface hover:border-slate-300 dark:hover:border-outline transition-all duration-200"
       />
 
       {/* Clear Text Action Button (Visible only when search term has content) */}

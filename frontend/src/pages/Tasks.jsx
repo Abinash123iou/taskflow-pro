@@ -50,7 +50,7 @@ const Tasks = () => {
         params.priority = priority;
       }
 
-      const response = await axios.get('http://localhost:5000/tasks', {
+      const response = await axios.get('/api/tasks', {
         headers: { Authorization: `Bearer ${token}` },
         params
       });
@@ -104,7 +104,7 @@ const Tasks = () => {
         setModalOpen(true);
       } else {
         // Fetch specific task
-        axios.get(`http://localhost:5000/tasks`, {
+        axios.get(`/api/tasks`, {
           headers: { Authorization: `Bearer ${token}` }
         }).then(res => {
           if (res.data.success) {
@@ -138,7 +138,7 @@ const Tasks = () => {
   const handleSaveTask = async (taskData) => {
     try {
       if (modalMode === 'create') {
-        const res = await axios.post('http://localhost:5000/tasks', taskData, {
+        const res = await axios.post('/api/tasks', taskData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data.success) {
@@ -146,7 +146,7 @@ const Tasks = () => {
           return true;
         }
       } else if (modalMode === 'edit' && selectedTask) {
-        const res = await axios.put(`http://localhost:5000/tasks/${selectedTask.id}`, taskData, {
+        const res = await axios.put(`/api/tasks/${selectedTask.id}`, taskData, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.data.success) {
@@ -165,7 +165,7 @@ const Tasks = () => {
   // Delete task API wrapper
   const handleDeleteTask = async (id) => {
     try {
-      const res = await axios.delete(`http://localhost:5000/tasks/${id}`, {
+      const res = await axios.delete(`/api/tasks/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.data.success) {
@@ -266,7 +266,7 @@ const Tasks = () => {
           <div>
             <button 
               onClick={handleOpenCreate}
-              className="flex items-center gap-2 bg-primary text-on-primary px-6 py-3 rounded-lg font-semibold text-xs tracking-wider uppercase shadow-sm hover:shadow-md transition-all active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 bg-primary hover:bg-primary-hover active:bg-primary-active active:scale-95 disabled:bg-primary-disabled text-on-primary px-6 py-3 rounded-lg font-semibold text-xs tracking-wider uppercase shadow-sm hover:shadow-md transition-all cursor-pointer"
             >
               <span className="material-symbols-outlined text-[18px]">add</span>
               Create Task
@@ -345,7 +345,7 @@ const Tasks = () => {
         </div>
 
         {/* Task Table Container */}
-        <div className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
+        <div className="bg-surface border border-outline-variant rounded-xl overflow-hidden shadow-[0_1px_3px_rgba(0,0,0,0.05)]">
           {loading ? (
             <div className="py-24 flex flex-col items-center justify-center gap-3">
               <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>

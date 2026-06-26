@@ -12,6 +12,7 @@ if (token) {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -22,6 +23,7 @@ export const AuthProvider = ({ children }) => {
     if (storedToken && storedUser) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
       setUser(JSON.parse(storedUser));
+      setToken(storedToken);
     }
     setLoading(false);
   }, []);
@@ -38,6 +40,7 @@ export const AuthProvider = ({ children }) => {
       axios.defaults.headers.common['Authorization'] = `Bearer ${jwtToken}`;
 
       setUser(userProfile);
+      setToken(jwtToken);
       setLoading(false);
       return { success: true };
     } catch (err) {
@@ -68,10 +71,11 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('user');
     delete axios.defaults.headers.common['Authorization'];
     setUser(null);
+    setToken(null);
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, error, login, register, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, token, loading, error, login, register, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   );
